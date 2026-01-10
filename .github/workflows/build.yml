@@ -60,10 +60,23 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Debug - Check what exists
+        run: |
+          Write-Host "Current directory:"
+          Get-Location
+          Write-Host "Listing target folder:"
+          Get-ChildItem -Path "src-tauri\target" -Recurse -Depth 2 | Select-Object FullName
+          Write-Host "Checking if bundle exists:"
+          Test-Path "src-tauri\target\release\bundle"
+        shell: powershell
       - name: Copy artifacts
         run: |
           New-Item -ItemType Directory -Force -Path artifacts
-          Copy-Item -Path "src-tauri\target\release\bundle\*" -Destination "artifacts" -Recurse
+          if (Test-Path "src-tauri\target\release\bundle") {
+            Copy-Item -Path "src-tauri\target\release\bundle\*" -Destination "artifacts" -Recurse
+          } else {
+            Write-Host "Bundle folder not found!"
+          }
           Get-ChildItem -Recurse artifacts
         shell: powershell
       - name: Upload artifacts
