@@ -78,16 +78,6 @@ async function decryptKeysFromStorage(data, password) {
   return JSON.parse(sodium.to_string(plain));
 }
 
-async function registerPublicKeys(pubSign, pubEncrypt, username) {
-  const res = await fetch(`${serverUrl}/api/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, pubSign, pubEncrypt })
-  });
-  if (!res.ok) throw new Error('Registration failed');
-  return res.json();
-}
-
 function renderMessage(msg) {
   const wrapper = document.createElement('div');
   wrapper.className = 'border border-gray-800 rounded px-3 py-2 bg-black/60 text-sm';
@@ -152,46 +142,24 @@ async function handleLogin() {
   }
 
   const stored = loadKeys();
-  if (stored) {
-    // Existing account - decrypt keys
-    try {
-      const keys = await decryptKeysFromStorage(stored, password);
-      keypairSign = {
-        publicKey: sodium.from_base64(keys.pubSign),
-        privateKey: sodium.from_base64(keys.privSign),
-      };
-      keypairEncrypt = {
-        publicKey: sodium.from_base64(keys.pubEncrypt),
-        privateKey: sodium.from_base64(keys.privEncrypt),
-      };
-      console.log('Logged in with existing keys');
-    } catch (e) {
-      alert('Incorrect password. Your keys are encrypted with a different password.');
-      return;
-    }
-  } else {
-    // First time - create new account
-    console.log('Creating new account...');
-    keypairSign = sodium.crypto_sign_keypair();
-    keypairEncrypt = sodium.crypto_box_keypair();
-    const payload = {
-      pubSign: sodium.to_base64(keypairSign.publicKey),
-      privSign: sodium.to_base64(keypairSign.privateKey),
-      pubEncrypt: sodium.to_base64(keypairEncrypt.publicKey),
-      privEncrypt: sodium.to_base64(keypairEncrypt.privateKey),
+  if (!stored) {
+    alert('No account found. Please contact admin to create your account first.');
+    return;
+  }
+
+  try {
+    const keys = await decryptKeysFromStorage(stored, password);
+    keypairSign = {
+      publicKey: sodium.from_base64(keys.pubSign),
+      privateKey: sodium.from_base64(keys.privSign),
     };
-    const encrypted = await encryptKeysForStorage(payload, password);
-    saveKeys(encrypted);
-    try {
-      await registerPublicKeys(payload.pubSign, payload.pubEncrypt, username);
-      console.log('New account registered successfully!');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to register with server. Check your connection.');
-      // Clear the saved keys since registration failed
-      localStorage.removeItem('ghost_keys');
-      return;
-    }
+    keypairEncrypt = {
+      publicKey: sodium.from_base64(keys.pubEncrypt),
+      privateKey: sodium.from_base64(keys.privEncrypt),
+    };
+  } catch (e) {
+    alert('Incorrect password');
+    return;
   }
 
   els.loginCard.classList.add('hidden');
