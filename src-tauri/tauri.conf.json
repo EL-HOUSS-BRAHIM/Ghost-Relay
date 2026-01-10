@@ -21,17 +21,13 @@
       "all": false,
       "http": {
         "all": true,
-        "scope": ["https://ghost-relay-server--el-houss-brahim.replit.app/*"]
+        "scope": ["https://ghost-relay-server--el-houss-brahim.replit.app/*", "wss://ghost-relay-server--el-houss-brahim.replit.app/*"]
       },
       "shell": {
         "all": true
       },
       "clipboard": {
         "all": true
-      },
-      "websocket": {
-        "all": true,
-        "scope": ["wss://ghost-relay-server--el-houss-brahim.replit.app/*"]
       }
     },
     "bundle": {
