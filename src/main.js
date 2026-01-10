@@ -153,6 +153,7 @@ async function handleLogin() {
 
   const stored = loadKeys();
   if (stored) {
+    // Existing account - decrypt keys
     try {
       const keys = await decryptKeysFromStorage(stored, password);
       keypairSign = {
@@ -163,11 +164,14 @@ async function handleLogin() {
         publicKey: sodium.from_base64(keys.pubEncrypt),
         privateKey: sodium.from_base64(keys.privEncrypt),
       };
+      console.log('Logged in with existing keys');
     } catch (e) {
-      alert('Bad password for stored keys');
+      alert('Incorrect password. Your keys are encrypted with a different password.');
       return;
     }
   } else {
+    // First time - create new account
+    console.log('Creating new account...');
     keypairSign = sodium.crypto_sign_keypair();
     keypairEncrypt = sodium.crypto_box_keypair();
     const payload = {
@@ -180,9 +184,13 @@ async function handleLogin() {
     saveKeys(encrypted);
     try {
       await registerPublicKeys(payload.pubSign, payload.pubEncrypt, username);
+      console.log('New account registered successfully!');
     } catch (err) {
       console.error(err);
-      alert('Key registration failed');
+      alert('Failed to register with server. Check your connection.');
+      // Clear the saved keys since registration failed
+      localStorage.removeItem('ghost_keys');
+      return;
     }
   }
 
