@@ -43,7 +43,7 @@
       ]
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src 'self' https://ghost-relay-server--el-houss-brahim.replit.app wss://ghost-relay-server--el-houss-brahim.replit.app; img-src 'self' data:; media-src 'self' data: blob:;"
     }
   }
 }
