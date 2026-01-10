@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" class="bg-black text-gray-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost Relay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: '#0aff9d',
+            accentDim: '#065f46'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Mono', 'Fira Code', 'Menlo', monospace; }
+    .neon { text-shadow: 0 0 8px #0aff9d66, 0 0 20px #0aff9d33; }
+    .glass { backdrop-filter: blur(6px); background: rgba(20, 20, 20, 0.7); }
+    .gradient { background: radial-gradient(circle at 20% 20%, #0aff9d11, transparent 35%),
+                 radial-gradient(circle at 80% 0%, #0aff9d08, transparent 40%),
+                 radial-gradient(circle at 50% 80%, #0aff9d0f, transparent 35%);
+    }
+  </style>
+</head>
+<body class="min-h-screen gradient">
+  <main class="max-w-md mx-auto px-4 py-8 space-y-4">
+    <header class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold neon">Ghost Relay</h1>
+        <p class="text-sm text-gray-400">Secure relay via Tauri</p>
+      </div>
+      <div id="status" class="flex items-center space-x-2">
+        <span id="statusDot" class="inline-block h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
+        <span class="text-xs uppercase tracking-wider text-gray-300">Offline</span>
+      </div>
+    </header>
+
+    <section id="loginCard" class="glass rounded-xl border border-gray-800 p-4 space-y-3">
+      <div class="text-sm text-gray-300">Local unlock</div>
+      <div class="space-y-2">
+        <input id="username" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Username" />
+        <input id="password" type="password" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Password (local encryption)" />
+      </div>
+      <button id="loginBtn" class="w-full py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Unlock & Connect</button>
+    </section>
+
+    <section id="chatCard" class="glass rounded-xl border border-gray-800 p-4 space-y-3 hidden">
+      <div class="flex items-center justify-between text-sm text-gray-300">
+        <span>Relay</span>
+        <div class="flex items-center space-x-2">
+          <span class="h-2 w-2 rounded-full bg-red-500" id="wsDot"></span>
+          <span id="wsState">Disconnected</span>
+        </div>
+      </div>
+      <div id="messages" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+      <div class="space-y-2">
+        <textarea id="textInput" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" rows="2" placeholder="Type a message..."></textarea>
+        <div class="flex items-center space-x-2">
+          <button id="sendBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Send Text</button>
+          <button id="recordBtn" class="px-3 py-2 rounded border border-accent text-accent hover:bg-accent/10 transition" title="Hold to record">Hold Voice</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

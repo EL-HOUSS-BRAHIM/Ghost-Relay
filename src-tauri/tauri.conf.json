@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/schema.json",
+  "package": {
+    "productName": "Ghost Relay",
+    "version": "0.1.0"
+  },
+  "build": {
+    "distDir": "../src",
+    "devPath": "../src"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "Ghost Relay",
+        "width": 400,
+        "height": 600,
+        "resizable": true
+      }
+    ],
+    "allowlist": {
+      "all": false,
+      "http": {
+        "all": true,
+        "scope": ["https://ghost-relay-server--el-houss-brahim.replit.app/*"]
+      },
+      "shell": {
+        "all": true
+      },
+      "clipboard": {
+        "all": true
+      },
+      "websocket": {
+        "all": true,
+        "scope": ["wss://ghost-relay-server--el-houss-brahim.replit.app/*"]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": ["msi", "appimage"],
+      "identifier": "com.ghost.messenger"
+    }
+  }
+}
