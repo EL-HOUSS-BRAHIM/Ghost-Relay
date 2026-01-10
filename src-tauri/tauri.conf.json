@@ -34,6 +34,9 @@
       "active": true,
       "targets": ["msi", "appimage"],
       "identifier": "com.ghost.messenger"
+    },
+    "security": {
+      "csp": null
     }
   }
 }
