@@ -30,21 +30,13 @@ jobs:
           node-version: 18
       - name: Install frontend deps
         run: npm install
-      - name: Build Tauri (Linux)
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Copy artifacts
-        run: |
-          mkdir -p artifacts
-          cp -r src-tauri/target/release/bundle/* artifacts/
-          ls -R artifacts/
+      - name: Build Tauri app
+        run: npm run tauri build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: ghost-relay-linux
-          path: artifacts/**/*
+          path: src-tauri/target/release/bundle/appimage/*.AppImage
 
   build-windows:
     runs-on: windows-latest
@@ -56,32 +48,12 @@ jobs:
           node-version: 18
       - name: Install frontend deps
         run: npm install
-      - name: Build Tauri (Windows)
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Debug - Check what exists
-        run: |
-          Write-Host "Current directory:"
-          Get-Location
-          Write-Host "Listing target folder:"
-          Get-ChildItem -Path "src-tauri\target" -Recurse -Depth 2 | Select-Object FullName
-          Write-Host "Checking if bundle exists:"
-          Test-Path "src-tauri\target\release\bundle"
-        shell: powershell
-      - name: Copy artifacts
-        run: |
-          New-Item -ItemType Directory -Force -Path artifacts
-          if (Test-Path "src-tauri\target\release\bundle") {
-            Copy-Item -Path "src-tauri\target\release\bundle\*" -Destination "artifacts" -Recurse
-          } else {
-            Write-Host "Bundle folder not found!"
-          }
-          Get-ChildItem -Recurse artifacts
-        shell: powershell
+      - name: Build Tauri app
+        run: npm run tauri build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: ghost-relay-windows
-          path: artifacts/**/*
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
