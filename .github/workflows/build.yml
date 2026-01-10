@@ -34,8 +34,12 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          uploadWorkflowArtifacts: true
+          name: ghost-relay-linux
+          path: src-tauri/target/release/bundle/**/*
 
   build-windows:
     runs-on: windows-latest
@@ -51,5 +55,9 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          uploadWorkflowArtifacts: true
+          name: ghost-relay-windows
+          path: src-tauri/target/release/bundle/**/*
