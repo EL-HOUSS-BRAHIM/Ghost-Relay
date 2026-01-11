@@ -1,3 +1,36 @@
+// ============================================
+// GLOBAL ERROR TRAPPING & DEBUG CONSOLE
+// ============================================
+function logToScreen(msg, type = 'INFO') {
+  const consoleDiv = document.getElementById('debug-console');
+  if (consoleDiv) {
+    const line = document.createElement('div');
+    line.innerText = `[${type}] ${msg}`;
+    if (type === 'ERROR') line.style.color = 'red';
+    consoleDiv.appendChild(line);
+    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+  }
+}
+
+// Trap system errors
+window.onerror = function(msg, url, line) {
+  logToScreen(`${msg} (Line: ${line})`, 'ERROR');
+};
+
+// Override console logs
+const originalLog = console.log;
+console.log = function(...args) {
+  originalLog(...args);
+  logToScreen(args.join(' '));
+};
+const originalErr = console.error;
+console.error = function(...args) {
+  originalErr(...args);
+  logToScreen(args.join(' '), 'ERROR');
+};
+
+console.log("System booting...");
+
 // Note: For Tauri desktop app, using direct require-style imports for bundling
 // The bundler (esbuild) will resolve these from node_modules
 const sodium = require('libsodium-wrappers');
@@ -18,32 +51,8 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let unlockKey = null; // derived from password
 
-const els = {
-  loginCard: document.getElementById('screen-login'),
-  chatCard: document.getElementById('screen-chat'),
-  username: document.getElementById('username'),
-  password: document.getElementById('password'),
-  loginBtn: document.getElementById('btn-login'),
-  registerBtn: document.getElementById('btn-register'),
-  recoverBtn: document.getElementById('link-recovery'),
-  statusLabel: document.getElementById('status-indicator'),
-  wsState: document.getElementById('status-indicator'),
-  messages: document.getElementById('messages'),
-  textInput: document.getElementById('text-input'),
-  sendBtn: document.getElementById('btn-send'),
-  recordBtn: document.getElementById('btn-record'),
-  mnemonicModal: document.getElementById('modal-mnemonic'),
-  mnemonicDisplay: document.getElementById('mnemonicDisplay'),
-  copyMnemonicBtn: document.getElementById('btn-copy-mnemonic'),
-  closeMnemonicBtn: document.getElementById('btn-close-mnemonic'),
-  recoveryModal: document.getElementById('screen-recovery'),
-  recoverUsername: document.getElementById('recover-username'),
-  recoverPassword: document.getElementById('recover-password'),
-  recoverPhrase: document.getElementById('recover-phrase'),
-  confirmRecoverBtn: document.getElementById('btn-restore'),
-  cancelRecoverBtn: document.getElementById('link-back-login'),
-  logoutBtn: document.getElementById('btn-logout'),
-};
+// els object will be populated in DOMContentLoaded
+let els = {};
 
 // Screen switching helper function
 function showScreen(screenId) {
@@ -378,7 +387,7 @@ async function handleRegister() {
   els.mnemonicModal.classList.remove('hidden');
 }
 
-async function handleRecover() {
+async function handleRecovery() {
   await sodium.ready;
   const username = els.recoverUsername.value.trim();
   const password = els.recoverPassword.value;
@@ -434,7 +443,7 @@ async function handleRecover() {
   }
 }
 
-async function sendText() {
+async function sendMessage() {
   const text = els.textInput.value.trim();
   if (!text) return;
   const payload = encryptForWire(makePayload('txt', text));
@@ -481,45 +490,169 @@ function blobToBase64(blob) {
   });
 }
 
-els.loginBtn.addEventListener('click', handleLogin);
-els.registerBtn.addEventListener('click', handleRegister);
-els.recoverBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  showScreen('screen-recovery');
-});
-els.cancelRecoverBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  showScreen('screen-login');
-});
-els.confirmRecoverBtn.addEventListener('click', handleRecover);
-els.copyMnemonicBtn.addEventListener('click', () => {
-  navigator.clipboard.writeText(els.mnemonicDisplay.textContent);
-  els.copyMnemonicBtn.textContent = '✓ COPIED!';
-  setTimeout(() => {
-    els.copyMnemonicBtn.textContent = 'COPY';
-  }, 2000);
-});
-els.closeMnemonicBtn.addEventListener('click', async () => {
-  els.mnemonicModal.classList.add('hidden');
-  showScreen('screen-chat');
-  await syncUserList();
-  startUserSync();
-  connectWs();
-});
-els.sendBtn.addEventListener('click', sendText);
-els.recordBtn.addEventListener('mousedown', startRecording);
-els.recordBtn.addEventListener('mouseup', stopRecording);
-els.recordBtn.addEventListener('mouseleave', stopRecording);
-els.logoutBtn.addEventListener('click', () => {
-  if (ws) ws.close();
-  showScreen('screen-login');
-  els.username.value = '';
-  els.password.value = '';
-  els.messages.innerHTML = '';
-});
+// ============================================
+// DOM INITIALIZATION & EVENT LISTENERS
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM Loaded. Attaching listeners...");
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (document.activeElement === els.textInput)) {
-    sendText();
+  // Initialize els object with DOM elements
+  els = {
+    loginCard: document.getElementById('screen-login'),
+    chatCard: document.getElementById('screen-chat'),
+    username: document.getElementById('username'),
+    password: document.getElementById('password'),
+    loginBtn: document.getElementById('btn-login'),
+    registerBtn: document.getElementById('btn-register'),
+    recoverBtn: document.getElementById('link-recovery'),
+    statusLabel: document.getElementById('status-indicator'),
+    wsState: document.getElementById('status-indicator'),
+    messages: document.getElementById('messages'),
+    textInput: document.getElementById('text-input'),
+    sendBtn: document.getElementById('btn-send'),
+    recordBtn: document.getElementById('btn-record'),
+    mnemonicModal: document.getElementById('modal-mnemonic'),
+    mnemonicDisplay: document.getElementById('mnemonicDisplay'),
+    copyMnemonicBtn: document.getElementById('btn-copy-mnemonic'),
+    closeMnemonicBtn: document.getElementById('btn-close-mnemonic'),
+    recoveryModal: document.getElementById('screen-recovery'),
+    recoverUsername: document.getElementById('recover-username'),
+    recoverPassword: document.getElementById('recover-password'),
+    recoverPhrase: document.getElementById('recover-phrase'),
+    confirmRecoverBtn: document.getElementById('btn-restore'),
+    cancelRecoverBtn: document.getElementById('link-back-login'),
+    logoutBtn: document.getElementById('btn-logout'),
+  };
+
+  // Login button
+  const loginBtn = document.getElementById('btn-login');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', handleLogin);
+    console.log("Login button attached.");
+  } else {
+    console.error("CRITICAL: Login button (id='btn-login') not found!");
   }
+
+  // Register button
+  const registerBtn = document.getElementById('btn-register');
+  if (registerBtn) {
+    registerBtn.addEventListener('click', handleRegister);
+    console.log("Register button attached.");
+  } else {
+    console.error("CRITICAL: Register button (id='btn-register') not found!");
+  }
+
+  // Recovery link
+  const linkRecovery = document.getElementById('link-recovery');
+  if (linkRecovery) {
+    linkRecovery.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('screen-recovery');
+    });
+    console.log("Recovery link attached.");
+  } else {
+    console.error("CRITICAL: Recovery link (id='link-recovery') not found!");
+  }
+
+  // Cancel recovery button
+  const linkBackLogin = document.getElementById('link-back-login');
+  if (linkBackLogin) {
+    linkBackLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen('screen-login');
+    });
+    console.log("Back to login link attached.");
+  } else {
+    console.error("CRITICAL: Back to login link (id='link-back-login') not found!");
+  }
+
+  // Restore button (recovery screen)
+  const btnRestore = document.getElementById('btn-restore');
+  if (btnRestore) {
+    btnRestore.addEventListener('click', handleRecovery);
+    console.log("Restore button attached.");
+  } else {
+    console.error("CRITICAL: Restore button (id='btn-restore') not found!");
+  }
+
+  // Copy mnemonic button
+  const btnCopyMnemonic = document.getElementById('btn-copy-mnemonic');
+  if (btnCopyMnemonic) {
+    btnCopyMnemonic.addEventListener('click', () => {
+      navigator.clipboard.writeText(els.mnemonicDisplay.textContent);
+      btnCopyMnemonic.textContent = '✓ COPIED!';
+      setTimeout(() => {
+        btnCopyMnemonic.textContent = 'COPY';
+      }, 2000);
+    });
+    console.log("Copy mnemonic button attached.");
+  } else {
+    console.error("CRITICAL: Copy mnemonic button (id='btn-copy-mnemonic') not found!");
+  }
+
+  // Close mnemonic button
+  const btnCloseMnemonic = document.getElementById('btn-close-mnemonic');
+  if (btnCloseMnemonic) {
+    btnCloseMnemonic.addEventListener('click', async () => {
+      els.mnemonicModal.classList.add('hidden');
+      showScreen('screen-chat');
+      await syncUserList();
+      startUserSync();
+      connectWs();
+    });
+    console.log("Close mnemonic button attached.");
+  } else {
+    console.error("CRITICAL: Close mnemonic button (id='btn-close-mnemonic') not found!");
+  }
+
+  // Send button
+  const btnSend = document.getElementById('btn-send');
+  if (btnSend) {
+    btnSend.addEventListener('click', sendMessage);
+    console.log("Send button attached.");
+  } else {
+    console.error("CRITICAL: Send button (id='btn-send') not found!");
+  }
+
+  // Record button
+  const btnRecord = document.getElementById('btn-record');
+  if (btnRecord) {
+    btnRecord.addEventListener('mousedown', startRecording);
+    btnRecord.addEventListener('mouseup', stopRecording);
+    btnRecord.addEventListener('mouseleave', stopRecording);
+    console.log("Record button attached.");
+  } else {
+    console.error("CRITICAL: Record button (id='btn-record') not found!");
+  }
+
+  // Logout button
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      if (ws) ws.close();
+      showScreen('screen-login');
+      els.username.value = '';
+      els.password.value = '';
+      els.messages.innerHTML = '';
+    });
+    console.log("Logout button attached.");
+  } else {
+    console.error("CRITICAL: Logout button (id='btn-logout') not found!");
+  }
+
+  // Enter key handler for text input
+  const textInput = document.getElementById('text-input');
+  if (textInput) {
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    console.log("Text input Enter key handler attached.");
+  } else {
+    console.error("CRITICAL: Text input (id='text-input') not found!");
+  }
+
+  console.log("All event listeners attached successfully!");
 });
