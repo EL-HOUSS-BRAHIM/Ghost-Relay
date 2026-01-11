@@ -47,6 +47,8 @@
         <input id="password" type="password" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Password (local encryption)" />
       </div>
       <button id="loginBtn" class="w-full py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Unlock & Connect</button>
+      <button id="registerBtn" class="w-full py-2 rounded border border-accent text-accent hover:bg-accent/10 transition">Create New Account</button>
+      <button id="recoverBtn" class="w-full py-2 rounded border border-gray-600 text-gray-400 hover:text-accent hover:border-accent transition text-sm">New Device? Recover with Phrase</button>
     </section>
 
     <section id="chatCard" class="glass rounded-xl border border-gray-800 p-4 space-y-3 hidden">
@@ -63,6 +65,36 @@
         <div class="flex items-center space-x-2">
           <button id="sendBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Send Text</button>
           <button id="recordBtn" class="px-3 py-2 rounded border border-accent text-accent hover:bg-accent/10 transition" title="Hold to record">Hold Voice</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mnemonic Display Modal -->
+    <section id="mnemonicModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+      <div class="glass rounded-xl border border-accent p-6 max-w-md w-full space-y-4">
+        <h2 class="text-xl font-semibold text-accent neon">⚠️ SECRET RECOVERY PHRASE</h2>
+        <p class="text-sm text-gray-300">Save this phrase to log in on other devices. Keep it safe and never share it!</p>
+        <div id="mnemonicDisplay" class="bg-black/80 border border-gray-700 rounded p-4 text-center font-mono text-sm break-words select-all"></div>
+        <div class="flex space-x-2">
+          <button id="copyMnemonicBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Copy to Clipboard</button>
+          <button id="closeMnemonicBtn" class="flex-1 py-2 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition">I've Saved It</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recovery Modal -->
+    <section id="recoveryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+      <div class="glass rounded-xl border border-gray-800 p-6 max-w-md w-full space-y-4">
+        <h2 class="text-xl font-semibold text-accent neon">Recover Account</h2>
+        <p class="text-sm text-gray-400">Enter your username and 12-word recovery phrase</p>
+        <div class="space-y-2">
+          <input id="recoverUsername" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Username" />
+          <input id="recoverPassword" type="password" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="New Password (local encryption)" />
+          <textarea id="recoverPhrase" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent font-mono text-sm" rows="4" placeholder="Enter your 12-word recovery phrase separated by spaces"></textarea>
+        </div>
+        <div class="flex space-x-2">
+          <button id="confirmRecoverBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Recover & Connect</button>
+          <button id="cancelRecoverBtn" class="flex-1 py-2 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition">Cancel</button>
         </div>
       </div>
     </section>

@@ -1,103 +1,54 @@
-Project: "Ghost Relay" - Client Side
+Logic Update: Missing HTTP Endpoints
 
-Target: Tauri (Windows .exe + Linux AppImage)
-Backend URL: https://ghost-relay-server--el-houss-brahim.replit.app
-WebSocket URL: wss://ghost-relay-server--el-houss-brahim.replit.app/ws
+The main.js is missing the logic to Register and Fetch Users via HTTP.
+Please add the following two functions and integrate them into the app initialization flow.
 
-1. Directory Structure (Simulated)
+Crucial Security Requirement:
+Every fetch call MUST include the header:
+"X-Ghost-Auth": APP_SECRET
 
-Since we are pasting into GitHub, we need the AI to give us the file contents for:
+1. Function: registerUser(username, publicKey, encKey)
 
-src/index.html (The UI)
+Endpoint: POST /api/register
 
-src/main.js (The Brains: Crypto, Voice, WebSocket)
+Body: JSON { "username": ..., "public_key": ..., "encryption_key": ... }
 
-src-tauri/tauri.conf.json (The Configuration)
+Headers: Content-Type: application/json AND X-Ghost-Auth: APP_SECRET
 
-.github/workflows/build.yml (The Cloud Builder)
+Logic:
 
-2. Global Constraints (For the AI)
+Call this when the user clicks "Register" or "Login" for the first time.
 
-No Frameworks: Use "Vanilla JS" and "Tailwind via CDN" (or simple CSS). Do not use npm install react. Keep it raw and simple.
+If response is 200 OK: Save user data to localStorage.
 
-Crypto Library: Use libsodium-wrappers via CDN or local file.
+If response is 403 Forbidden: Alert "Invalid App Secret".
 
-Note: Since we are building an offline app, ask the AI to include libsodium.js logic or use a specific npm package in package.json.
+If response is 409 Conflict: Alert "Username taken".
 
-Voice Logic:
+2. Function: syncUserList()
 
-Use MediaRecorder.
+Endpoint: GET /api/users
 
-Limit: Stop recording automatically at 50 seconds.
+Headers: X-Ghost-Auth: APP_SECRET (No body needed)
 
-Format: WebM/Opus.
+Logic:
 
-Conversion: Convert Blob -> Base64 string.
+Call this automatically every 60 seconds OR when the app loads.
 
-Size Check: If Base64 string > 200KB, alert user "Voice note too long".
+Save the list (Username + Public Keys) to localStorage.
 
-Message Limit:
+Update the UI "Contacts" sidebar with the new users.
 
-Only show the last 10 messages in the UI.
+3. Integration
 
-Store encrypted keys in localStorage (for now, simpler than file I/O on phone-coding).
+Ensure these functions are called before the WebSocket connects.
 
-3. Prompts to Copy-Paste to AI Builder
+The flow should be:
 
-Prompt 1 (The UI & Logic):
+App Start.
 
-"Create the frontend code for my Tauri app.
+Check if Keys exist in localStorage.
 
-File 1: package.json
-Include libsodium-wrappers and tauri-apps/api.
+If No: Show Login Screen -> User enters Name/Pass -> Generate Keys -> Call registerUser.
 
-File 2: index.html
-Create a dark-mode, hacker-style UI.
-Elements:
-
-Login Screen: Username, Password (for local key encryption).
-
-Chat Screen: List of messages (max 10), Input box (Text), 'Hold to Record' button (Voice).
-
-Status Indicator: Red (Offline) / Green (Online).
-
-File 3: main.js
-Implement the logic using libsodium-wrappers.
-
-Key Gen: On first run, generate Ed25519 (Identity) and X25519 (Encryption) keys. Upload public keys to https://ghost-relay-server--el-houss-brahim.replit.app/api/register.
-
-Voice: Record audio (max 50s). Convert to Base64. Check if size < 200KB.
-
-Crypto:
-
-Text: { "t": "txt", "c": "message" } -> Encrypt -> Send.
-
-Audio: { "t": "aud", "c": "base64..." } -> Encrypt -> Send.
-
-Display: Decrypt incoming messages. If t=="aud", render an <audio> tag. Keep max 10 items in DOM."
-
-Prompt 2 (The Tauri Config):
-
-"Generate the src-tauri/tauri.conf.json for a Tauri v1 app.
-
-Identifier: com.ghost.messenger
-
-Window: 400x600, resizable, title 'Ghost Relay'.
-
-Allowlist: Enable http (for Replit), websocket (for Replit), shell (open links), and clipboard.
-
-Bundle: Enable active: true. Targets: msi (or nsis), appimage."
-
-Prompt 3 (The Cloud Builder - CRITICAL):
-
-"Create a .github/workflows/build.yml file.
-
-Trigger: Push to main.
-
-Job 1: Ubuntu-latest. Install dependencies (libwebkit2gtk-4.0-dev, etc.). Build AppImage.
-
-Job 2: Windows-latest. Build .exe.
-
-Action: Upload the builds as 'Artifacts' so I can download them.
-
-Important: Use the standard tauri-apps/tauri-action@v0 action."
+If Yes: Call syncUserList -> Connect WebSocket (connectWs).

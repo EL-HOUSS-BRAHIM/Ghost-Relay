@@ -1,7 +1,13 @@
 import sodium from 'https://cdn.jsdelivr.net/npm/libsodium-wrappers@0.7.13/+esm';
+import * as bip39 from 'https://cdn.jsdelivr.net/npm/bip39@3.1.0/+esm';
+import { Buffer } from 'https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm';
+
+// Make Buffer global for bip39
+window.Buffer = Buffer;
 
 const serverUrl = 'https://ghost-relay-server--el-houss-brahim.replit.app';
 const wsUrl = 'wss://ghost-relay-server--el-houss-brahim.replit.app/ws';
+const APP_SECRET = 'ghost-relay-secure-2026-v1'; // API key for backend authentication
 
 let keypairSign = null; // Ed25519
 let keypairEncrypt = null; // X25519
@@ -16,6 +22,8 @@ const els = {
   username: document.getElementById('username'),
   password: document.getElementById('password'),
   loginBtn: document.getElementById('loginBtn'),
+  registerBtn: document.getElementById('registerBtn'),
+  recoverBtn: document.getElementById('recoverBtn'),
   statusDot: document.getElementById('statusDot'),
   statusLabel: document.querySelector('#status span:last-child'),
   wsDot: document.getElementById('wsDot'),
@@ -24,6 +32,16 @@ const els = {
   textInput: document.getElementById('textInput'),
   sendBtn: document.getElementById('sendBtn'),
   recordBtn: document.getElementById('recordBtn'),
+  mnemonicModal: document.getElementById('mnemonicModal'),
+  mnemonicDisplay: document.getElementById('mnemonicDisplay'),
+  copyMnemonicBtn: document.getElementById('copyMnemonicBtn'),
+  closeMnemonicBtn: document.getElementById('closeMnemonicBtn'),
+  recoveryModal: document.getElementById('recoveryModal'),
+  recoverUsername: document.getElementById('recoverUsername'),
+  recoverPassword: document.getElementById('recoverPassword'),
+  recoverPhrase: document.getElementById('recoverPhrase'),
+  confirmRecoverBtn: document.getElementById('confirmRecoverBtn'),
+  cancelRecoverBtn: document.getElementById('cancelRecoverBtn'),
 };
 
 function setStatus(online) {
@@ -78,6 +96,100 @@ async function decryptKeysFromStorage(data, password) {
   return JSON.parse(sodium.to_string(plain));
 }
 
+// Generate keypair from BIP39 mnemonic
+function deriveKeypairFromMnemonic(mnemonic) {
+  const seed = bip39.mnemonicToSeedSync(mnemonic);
+  const seedBytes = new Uint8Array(seed.slice(0, 32)); // Use first 32 bytes as Ed25519 seed
+  
+  // Generate Ed25519 keypair from seed
+  const keypairSign = sodium.crypto_sign_seed_keypair(seedBytes);
+  
+  // Convert Ed25519 keys to X25519 for encryption
+  const pubEncrypt = sodium.crypto_sign_ed25519_pk_to_curve25519(keypairSign.publicKey);
+  const privEncrypt = sodium.crypto_sign_ed25519_sk_to_curve25519(keypairSign.privateKey);
+  
+  return {
+    sign: keypairSign,
+    encrypt: { publicKey: pubEncrypt, privateKey: privEncrypt }
+  };
+}
+
+// Register user with backend
+async function registerUser(username, publicKey, encKey) {
+  try {
+    const response = await fetch(`${serverUrl}/api/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Ghost-Auth': APP_SECRET
+      },
+      body: JSON.stringify({
+        username: username,
+        public_key: publicKey,
+        encryption_key: encKey
+      })
+    });
+
+    if (response.ok) {
+      // Save user data to localStorage
+      localStorage.setItem('ghost_username', username);
+      localStorage.setItem('ghost_registered', 'true');
+      return { success: true };
+    } else if (response.status === 403) {
+      alert('Invalid App Secret');
+      return { success: false, error: 'forbidden' };
+    } else if (response.status === 409) {
+      alert('Username taken');
+      return { success: false, error: 'conflict' };
+    } else {
+      alert('Registration failed. Please try again.');
+      return { success: false, error: 'unknown' };
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    alert('Network error during registration');
+    return { success: false, error: 'network' };
+  }
+}
+
+// Sync user list from backend
+async function syncUserList() {
+  try {
+    const response = await fetch(`${serverUrl}/api/users`, {
+      method: 'GET',
+      headers: {
+        'X-Ghost-Auth': APP_SECRET
+      }
+    });
+
+    if (response.ok) {
+      const users = await response.json();
+      // Save to localStorage
+      localStorage.setItem('ghost_users', JSON.stringify(users));
+      // Update UI if needed (future enhancement)
+      console.log('User list synced:', users.length, 'users');
+      return users;
+    } else if (response.status === 403) {
+      console.error('Invalid App Secret for user sync');
+      return [];
+    } else {
+      console.error('Failed to sync users:', response.status);
+      return [];
+    }
+  } catch (error) {
+    console.error('User sync error:', error);
+    return [];
+  }
+}
+
+// Auto-sync user list every 60 seconds
+let userSyncInterval = null;
+function startUserSync() {
+  if (userSyncInterval) clearInterval(userSyncInterval);
+  syncUserList(); // Initial sync
+  userSyncInterval = setInterval(syncUserList, 60000); // Every 60 seconds
+}
+
 function renderMessage(msg) {
   const wrapper = document.createElement('div');
   wrapper.className = 'border border-gray-800 rounded px-3 py-2 bg-black/60 text-sm';
@@ -116,7 +228,9 @@ function decryptFromWire(payload) {
 
 function connectWs() {
   if (ws) ws.close();
-  ws = new WebSocket(wsUrl);
+  // Append ghost_auth to URL query for WebSocket authentication
+  const wsUrlWithAuth = `${wsUrl}?ghost_auth=${encodeURIComponent(APP_SECRET)}`;
+  ws = new WebSocket(wsUrlWithAuth);
   ws.binaryType = 'arraybuffer';
   ws.onopen = () => setWsState(true);
   ws.onclose = () => setWsState(false);
@@ -143,7 +257,7 @@ async function handleLogin() {
 
   const stored = loadKeys();
   if (!stored) {
-    alert('No account found. Please contact admin to create your account first.');
+    alert('No account found locally. Please use "Create New Account" or "Recover with Phrase".');
     return;
   }
 
@@ -164,7 +278,107 @@ async function handleLogin() {
 
   els.loginCard.classList.add('hidden');
   els.chatCard.classList.remove('hidden');
+  await syncUserList();
+  startUserSync();
   connectWs();
+}
+
+async function handleRegister() {
+  await sodium.ready;
+  const username = els.username.value.trim();
+  const password = els.password.value;
+  if (!username || !password) {
+    alert('Username and password required');
+    return;
+  }
+
+  // Generate 12-word mnemonic
+  const mnemonic = bip39.generateMnemonic(128); // 128 bits = 12 words
+  
+  // Derive keypairs from mnemonic
+  const keypairs = deriveKeypairFromMnemonic(mnemonic);
+  keypairSign = keypairs.sign;
+  keypairEncrypt = keypairs.encrypt;
+  
+  // Prepare keys for storage (including mnemonic)
+  const keysObj = {
+    pubSign: sodium.to_base64(keypairSign.publicKey),
+    privSign: sodium.to_base64(keypairSign.privateKey),
+    pubEncrypt: sodium.to_base64(keypairEncrypt.publicKey),
+    privEncrypt: sodium.to_base64(keypairEncrypt.privateKey),
+    mnemonic: mnemonic // Store the mnemonic encrypted
+  };
+  
+  // Encrypt and save to localStorage
+  const encrypted = await encryptKeysForStorage(keysObj, password);
+  saveKeys(encrypted);
+  
+  // Register with backend
+  const publicKeyB64 = sodium.to_base64(keypairSign.publicKey);
+  const encKeyB64 = sodium.to_base64(keypairEncrypt.publicKey);
+  await registerUser(username, publicKeyB64, encKeyB64);
+  
+  // Display mnemonic to user
+  els.mnemonicDisplay.textContent = mnemonic;
+  els.mnemonicModal.classList.remove('hidden');
+}
+
+async function handleRecover() {
+  await sodium.ready;
+  const username = els.recoverUsername.value.trim();
+  const password = els.recoverPassword.value;
+  const phrase = els.recoverPhrase.value.trim();
+  
+  if (!username || !password || !phrase) {
+    alert('All fields are required for recovery');
+    return;
+  }
+  
+  // Validate mnemonic
+  if (!bip39.validateMnemonic(phrase)) {
+    alert('Invalid recovery phrase. Please check the words and try again.');
+    return;
+  }
+  
+  try {
+    // Derive keypairs from mnemonic
+    const keypairs = deriveKeypairFromMnemonic(phrase);
+    keypairSign = keypairs.sign;
+    keypairEncrypt = keypairs.encrypt;
+    
+    // Prepare keys for storage
+    const keysObj = {
+      pubSign: sodium.to_base64(keypairSign.publicKey),
+      privSign: sodium.to_base64(keypairSign.privateKey),
+      pubEncrypt: sodium.to_base64(keypairEncrypt.publicKey),
+      privEncrypt: sodium.to_base64(keypairEncrypt.privateKey),
+      mnemonic: phrase
+    };
+    
+    // Encrypt and save to localStorage
+    const encrypted = await encryptKeysForStorage(keysObj, password);
+    saveKeys(encrypted);
+    
+    // Register with backend if not already registered
+    const isRegistered = localStorage.getItem('ghost_registered');
+    if (!isRegistered) {
+      const publicKeyB64 = sodium.to_base64(keypairSign.publicKey);
+      const encKeyB64 = sodium.to_base64(keypairEncrypt.publicKey);
+      await registerUser(username, publicKeyB64, encKeyB64);
+    }
+    
+    // Close recovery modal and show chat
+    els.recoveryModal.classList.add('hidden');
+    els.loginCard.classList.add('hidden');
+    els.chatCard.classList.remove('hidden');
+    await syncUserList();
+    startUserSync();
+    connectWs();
+    
+  } catch (e) {
+    alert('Recovery failed. If you have an existing account with a different phrase, please contact admin to reset.');
+    console.error(e);
+  }
 }
 
 async function sendText() {
@@ -215,6 +429,29 @@ function blobToBase64(blob) {
 }
 
 els.loginBtn.addEventListener('click', handleLogin);
+els.registerBtn.addEventListener('click', handleRegister);
+els.recoverBtn.addEventListener('click', () => {
+  els.recoveryModal.classList.remove('hidden');
+});
+els.cancelRecoverBtn.addEventListener('click', () => {
+  els.recoveryModal.classList.add('hidden');
+});
+els.confirmRecoverBtn.addEventListener('click', handleRecover);
+els.copyMnemonicBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(els.mnemonicDisplay.textContent);
+  els.copyMnemonicBtn.textContent = '✓ Copied!';
+  setTimeout(() => {
+    els.copyMnemonicBtn.textContent = 'Copy to Clipboard';
+  }, 2000);
+});
+els.closeMnemonicBtn.addEventListener('click', async () => {
+  els.mnemonicModal.classList.add('hidden');
+  els.loginCard.classList.add('hidden');
+  els.chatCard.classList.remove('hidden');
+  await syncUserList();
+  startUserSync();
+  connectWs();
+});
 els.sendBtn.addEventListener('click', sendText);
 els.recordBtn.addEventListener('mousedown', startRecording);
 els.recordBtn.addEventListener('mouseup', stopRecording);
