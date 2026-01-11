@@ -2,13 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/schema.json",
   "package": {
     "productName": "Ghost Relay",
-    "version": "0.1.4"
+    "version": "0.1.9"
   },
   "build": {
     "distDir": "../src",
     "devPath": "../src",
     "beforeDevCommand": "",
-    "beforeBuildCommand": ""
+    "beforeBuildCommand": "",
+    "withGlobalTauri": true
   },
   "tauri": {
     "windows": [
