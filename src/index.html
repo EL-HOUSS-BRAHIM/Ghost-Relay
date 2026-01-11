@@ -353,6 +353,26 @@
     </div>
   </div>
 
+  <!-- VISUAL DEBUG CONSOLE (Always visible for now) -->
+  <div id="debug-console" style="
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 150px; 
+    background: rgba(0,0,0,0.9); 
+    color: #0f0; 
+    font-family: monospace; 
+    font-size: 10px; 
+    overflow-y: scroll; 
+    border-top: 2px solid #0f0; 
+    z-index: 9999;
+    padding: 5px;
+    pointer-events: none; /* Let clicks pass through if needed, but we need to read it */
+">
+    <div>GHOST SYSTEM LOG INITIALIZED...</div>
+  </div>
+
   <script src="./bundle.js"></script>
 </body>
 </html>
