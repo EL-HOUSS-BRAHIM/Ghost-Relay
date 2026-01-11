@@ -23,8 +23,7 @@ esbuild.build({
     'process.env.NODE_ENV': '"production"'
   },
   loader: {
-    '.wasm': 'file',
-    '.js': 'jsx'
+    '.wasm': 'file'
   }
 }).then(() => {
   console.log('Bundle created successfully!');

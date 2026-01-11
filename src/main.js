@@ -26,9 +26,7 @@ const els = {
   loginBtn: document.getElementById('btn-login'),
   registerBtn: document.getElementById('btn-register'),
   recoverBtn: document.getElementById('link-recovery'),
-  statusDot: null, // Not used in new UI
   statusLabel: document.getElementById('status-indicator'),
-  wsDot: null, // Not used in new UI
   wsState: document.getElementById('status-indicator'),
   messages: document.getElementById('messages'),
   textInput: document.getElementById('text-input'),
