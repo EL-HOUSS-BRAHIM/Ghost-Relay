@@ -1,8 +1,8 @@
-// Note: For Tauri desktop app, these imports will work with local node_modules
-// For pure web version, you'll need a bundler like Vite or Webpack
-import sodium from 'libsodium-wrappers';
-import * as bip39 from 'bip39';
-import { Buffer } from 'buffer';
+// Note: For Tauri desktop app, using direct require-style imports for bundling
+// The bundler (esbuild) will resolve these from node_modules
+const sodium = require('libsodium-wrappers');
+const bip39 = require('bip39');
+const { Buffer } = require('buffer');
 
 // Make Buffer global for bip39
 window.Buffer = Buffer;

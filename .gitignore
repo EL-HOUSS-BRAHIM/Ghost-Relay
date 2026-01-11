@@ -27,6 +27,9 @@ build/
 *.exe
 *.dmg
 *.app
+src/bundle.js
+src/bundle.js.map
+src/vendor/
 
 # OS
 .DS_Store

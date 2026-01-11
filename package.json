@@ -5,16 +5,18 @@
   "description": "Ghost Relay Tauri client",
   "scripts": {
     "tauri": "tauri",
-    "dev": "tauri dev",
-    "build": "tauri build"
+    "bundle": "node build.js",
+    "dev": "npm run bundle && tauri dev",
+    "build": "npm run bundle && tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.4",
-    "libsodium-wrappers": "^0.7.13",
     "bip39": "^3.1.0",
-    "buffer": "^6.0.3"
+    "buffer": "^6.0.3",
+    "libsodium-wrappers": "^0.7.13"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.11"
+    "@tauri-apps/cli": "^1.5.11",
+    "esbuild": "^0.27.2"
   }
 }
