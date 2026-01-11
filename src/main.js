@@ -1,6 +1,8 @@
-import sodium from 'https://cdn.jsdelivr.net/npm/libsodium-wrappers@0.7.13/+esm';
-import * as bip39 from 'https://cdn.jsdelivr.net/npm/bip39@3.1.0/+esm';
-import { Buffer } from 'https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm';
+// Note: For Tauri desktop app, using direct require-style imports for bundling
+// The bundler (esbuild) will resolve these from node_modules
+const sodium = require('libsodium-wrappers');
+const bip39 = require('bip39');
+const { Buffer } = require('buffer');
 
 // Make Buffer global for bip39
 window.Buffer = Buffer;
@@ -17,43 +19,68 @@ let recordedChunks = [];
 let unlockKey = null; // derived from password
 
 const els = {
-  loginCard: document.getElementById('loginCard'),
-  chatCard: document.getElementById('chatCard'),
+  loginCard: document.getElementById('screen-login'),
+  chatCard: document.getElementById('screen-chat'),
   username: document.getElementById('username'),
   password: document.getElementById('password'),
-  loginBtn: document.getElementById('loginBtn'),
-  registerBtn: document.getElementById('registerBtn'),
-  recoverBtn: document.getElementById('recoverBtn'),
-  statusDot: document.getElementById('statusDot'),
-  statusLabel: document.getElementById('statusText'),
-  wsDot: document.getElementById('wsDot'),
-  wsState: document.getElementById('wsState'),
+  loginBtn: document.getElementById('btn-login'),
+  registerBtn: document.getElementById('btn-register'),
+  recoverBtn: document.getElementById('link-recovery'),
+  statusLabel: document.getElementById('status-indicator'),
+  wsState: document.getElementById('status-indicator'),
   messages: document.getElementById('messages'),
-  textInput: document.getElementById('textInput'),
-  sendBtn: document.getElementById('sendBtn'),
-  recordBtn: document.getElementById('recordBtn'),
-  mnemonicModal: document.getElementById('mnemonicModal'),
+  textInput: document.getElementById('text-input'),
+  sendBtn: document.getElementById('btn-send'),
+  recordBtn: document.getElementById('btn-record'),
+  mnemonicModal: document.getElementById('modal-mnemonic'),
   mnemonicDisplay: document.getElementById('mnemonicDisplay'),
-  copyMnemonicBtn: document.getElementById('copyMnemonicBtn'),
-  closeMnemonicBtn: document.getElementById('closeMnemonicBtn'),
-  recoveryModal: document.getElementById('recoveryModal'),
-  recoverUsername: document.getElementById('recoverUsername'),
-  recoverPassword: document.getElementById('recoverPassword'),
-  recoverPhrase: document.getElementById('recoverPhrase'),
-  confirmRecoverBtn: document.getElementById('confirmRecoverBtn'),
-  cancelRecoverBtn: document.getElementById('cancelRecoverBtn'),
+  copyMnemonicBtn: document.getElementById('btn-copy-mnemonic'),
+  closeMnemonicBtn: document.getElementById('btn-close-mnemonic'),
+  recoveryModal: document.getElementById('screen-recovery'),
+  recoverUsername: document.getElementById('recover-username'),
+  recoverPassword: document.getElementById('recover-password'),
+  recoverPhrase: document.getElementById('recover-phrase'),
+  confirmRecoverBtn: document.getElementById('btn-restore'),
+  cancelRecoverBtn: document.getElementById('link-back-login'),
+  logoutBtn: document.getElementById('btn-logout'),
 };
 
+// Screen switching helper function
+function showScreen(screenId) {
+  ['screen-login', 'screen-recovery', 'screen-chat'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.classList.add('hidden');
+    }
+  });
+  const targetScreen = document.getElementById(screenId);
+  if (targetScreen) {
+    targetScreen.classList.remove('hidden');
+  }
+}
+
 function setStatus(online) {
-  els.statusDot.classList.toggle('status-online', online);
-  els.statusDot.classList.toggle('status-offline', !online);
-  els.statusLabel.textContent = online ? 'Online' : 'Offline';
+  if (els.statusDot) {
+    els.statusDot.classList.toggle('status-online', online);
+    els.statusDot.classList.toggle('status-offline', !online);
+  }
+  if (els.statusLabel) {
+    els.statusLabel.textContent = online ? 'ONLINE' : 'OFFLINE';
+    els.statusLabel.classList.toggle('online', online);
+    els.statusLabel.classList.toggle('offline', !online);
+  }
 }
 
 function setWsState(connected) {
-  els.wsDot.classList.toggle('status-online', connected);
-  els.wsDot.classList.toggle('status-offline', !connected);
-  els.wsState.textContent = connected ? 'Connected' : 'Disconnected';
+  if (els.wsDot) {
+    els.wsDot.classList.toggle('status-online', connected);
+    els.wsDot.classList.toggle('status-offline', !connected);
+  }
+  if (els.wsState) {
+    els.wsState.textContent = connected ? 'ONLINE' : 'OFFLINE';
+    els.wsState.classList.toggle('online', connected);
+    els.wsState.classList.toggle('offline', !connected);
+  }
   setStatus(connected);
 }
 
@@ -305,8 +332,7 @@ async function handleLogin() {
     return;
   }
 
-  els.loginCard.classList.add('hidden');
-  els.chatCard.classList.remove('hidden');
+  showScreen('screen-chat');
   await syncUserList();
   startUserSync();
   connectWs();
@@ -397,9 +423,7 @@ async function handleRecover() {
     }
     
     // Close recovery modal and show chat
-    els.recoveryModal.classList.add('hidden');
-    els.loginCard.classList.add('hidden');
-    els.chatCard.classList.remove('hidden');
+    showScreen('screen-chat');
     await syncUserList();
     startUserSync();
     connectWs();
@@ -459,24 +483,25 @@ function blobToBase64(blob) {
 
 els.loginBtn.addEventListener('click', handleLogin);
 els.registerBtn.addEventListener('click', handleRegister);
-els.recoverBtn.addEventListener('click', () => {
-  els.recoveryModal.classList.remove('hidden');
+els.recoverBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  showScreen('screen-recovery');
 });
-els.cancelRecoverBtn.addEventListener('click', () => {
-  els.recoveryModal.classList.add('hidden');
+els.cancelRecoverBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  showScreen('screen-login');
 });
 els.confirmRecoverBtn.addEventListener('click', handleRecover);
 els.copyMnemonicBtn.addEventListener('click', () => {
   navigator.clipboard.writeText(els.mnemonicDisplay.textContent);
-  els.copyMnemonicBtn.textContent = '✓ Copied!';
+  els.copyMnemonicBtn.textContent = '✓ COPIED!';
   setTimeout(() => {
-    els.copyMnemonicBtn.textContent = 'Copy to Clipboard';
+    els.copyMnemonicBtn.textContent = 'COPY';
   }, 2000);
 });
 els.closeMnemonicBtn.addEventListener('click', async () => {
   els.mnemonicModal.classList.add('hidden');
-  els.loginCard.classList.add('hidden');
-  els.chatCard.classList.remove('hidden');
+  showScreen('screen-chat');
   await syncUserList();
   startUserSync();
   connectWs();
@@ -485,6 +510,13 @@ els.sendBtn.addEventListener('click', sendText);
 els.recordBtn.addEventListener('mousedown', startRecording);
 els.recordBtn.addEventListener('mouseup', stopRecording);
 els.recordBtn.addEventListener('mouseleave', stopRecording);
+els.logoutBtn.addEventListener('click', () => {
+  if (ws) ws.close();
+  showScreen('screen-login');
+  els.username.value = '';
+  els.password.value = '';
+  els.messages.innerHTML = '';
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (document.activeElement === els.textInput)) {
