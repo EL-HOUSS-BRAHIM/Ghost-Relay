@@ -25,7 +25,7 @@ const els = {
   registerBtn: document.getElementById('registerBtn'),
   recoverBtn: document.getElementById('recoverBtn'),
   statusDot: document.getElementById('statusDot'),
-  statusLabel: document.querySelector('#status span:last-child'),
+  statusLabel: document.getElementById('statusText'),
   wsDot: document.getElementById('wsDot'),
   wsState: document.getElementById('wsState'),
   messages: document.getElementById('messages'),
@@ -45,14 +45,14 @@ const els = {
 };
 
 function setStatus(online) {
-  els.statusDot.classList.toggle('bg-green-400', online);
-  els.statusDot.classList.toggle('bg-red-500', !online);
+  els.statusDot.classList.toggle('status-online', online);
+  els.statusDot.classList.toggle('status-offline', !online);
   els.statusLabel.textContent = online ? 'Online' : 'Offline';
 }
 
 function setWsState(connected) {
-  els.wsDot.classList.toggle('bg-green-400', connected);
-  els.wsDot.classList.toggle('bg-red-500', !connected);
+  els.wsDot.classList.toggle('status-online', connected);
+  els.wsDot.classList.toggle('status-offline', !connected);
   els.wsState.textContent = connected ? 'Connected' : 'Disconnected';
   setStatus(connected);
 }
@@ -192,19 +192,48 @@ function startUserSync() {
 
 function renderMessage(msg) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'border border-gray-800 rounded px-3 py-2 bg-black/60 text-sm';
+  wrapper.className = 'message-bubble rounded-xl px-4 py-3 text-sm animate-fadeIn';
+  
   if (msg.t === 'aud') {
+    const audioContainer = document.createElement('div');
+    audioContainer.className = 'flex items-center space-x-3';
+    
+    const icon = document.createElement('span');
+    icon.textContent = '🎤';
+    icon.className = 'text-2xl';
+    
     const audio = document.createElement('audio');
     audio.controls = true;
     audio.src = `data:audio/webm;base64,${msg.c}`;
-    wrapper.appendChild(audio);
+    audio.className = 'flex-1';
+    
+    audioContainer.appendChild(icon);
+    audioContainer.appendChild(audio);
+    wrapper.appendChild(audioContainer);
   } else {
-    wrapper.textContent = msg.c;
+    const textContainer = document.createElement('div');
+    textContainer.className = 'flex items-start space-x-3';
+    
+    const icon = document.createElement('span');
+    icon.textContent = '💬';
+    icon.className = 'text-xl mt-0.5';
+    
+    const text = document.createElement('p');
+    text.textContent = msg.c;
+    text.className = 'flex-1 text-gray-100 leading-relaxed';
+    
+    textContainer.appendChild(icon);
+    textContainer.appendChild(text);
+    wrapper.appendChild(textContainer);
   }
+  
   els.messages.appendChild(wrapper);
-  while (els.messages.children.length > 10) {
+  
+  // Keep last 20 messages
+  while (els.messages.children.length > 20) {
     els.messages.removeChild(els.messages.firstChild);
   }
+  
   els.messages.scrollTop = els.messages.scrollHeight;
 }
 

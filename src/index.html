@@ -5,96 +5,242 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ghost Relay</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
             accent: '#0aff9d',
-            accentDim: '#065f46'
+            accentDim: '#065f46',
+            accentGlow: '#0aff9d33'
           }
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'DM Mono', 'Fira Code', 'Menlo', monospace; }
-    .neon { text-shadow: 0 0 8px #0aff9d66, 0 0 20px #0aff9d33; }
-    .glass { backdrop-filter: blur(6px); background: rgba(20, 20, 20, 0.7); }
-    .gradient { background: radial-gradient(circle at 20% 20%, #0aff9d11, transparent 35%),
-                 radial-gradient(circle at 80% 0%, #0aff9d08, transparent 40%),
-                 radial-gradient(circle at 50% 80%, #0aff9d0f, transparent 35%);
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      letter-spacing: -0.01em;
     }
+    .neon { 
+      text-shadow: 0 0 12px #0aff9d66, 0 0 24px #0aff9d33, 0 0 36px #0aff9d22; 
+    }
+    .glass { 
+      backdrop-filter: blur(12px) saturate(180%); 
+      background: rgba(15, 15, 15, 0.85);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                  inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+    .gradient { 
+      background: radial-gradient(circle at 20% 20%, rgba(10, 255, 157, 0.08), transparent 40%),
+                  radial-gradient(circle at 80% 10%, rgba(10, 255, 157, 0.05), transparent 45%),
+                  radial-gradient(circle at 50% 85%, rgba(10, 255, 157, 0.1), transparent 40%),
+                  linear-gradient(180deg, #000000 0%, #0a0a0a 50%, #000000 100%);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0aff9d 0%, #08d684 100%);
+      box-shadow: 0 4px 16px rgba(10, 255, 157, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 24px rgba(10, 255, 157, 0.4), 0 4px 12px rgba(0, 0, 0, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    .btn-secondary {
+      border: 1.5px solid #0aff9d;
+      background: rgba(10, 255, 157, 0.05);
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(10, 255, 157, 0.15);
+      box-shadow: 0 0 20px rgba(10, 255, 157, 0.2);
+    }
+    .input-field {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(75, 85, 99, 0.5);
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: #0aff9d;
+      box-shadow: 0 0 0 3px rgba(10, 255, 157, 0.1);
+      background: rgba(0, 0, 0, 0.8);
+    }
+    .message-bubble {
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
+      border: 1px solid rgba(75, 85, 99, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .status-online { 
+      background: linear-gradient(135deg, #0aff9d 0%, #08d684 100%);
+      box-shadow: 0 0 12px rgba(10, 255, 157, 0.6);
+    }
+    .status-offline { 
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+    ::-webkit-scrollbar-thumb { 
+      background: rgba(75, 85, 99, 0.5); 
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(75, 85, 99, 0.7); }
   </style>
 </head>
 <body class="min-h-screen gradient">
-  <main class="max-w-md mx-auto px-4 py-8 space-y-4">
-    <header class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold neon">Ghost Relay</h1>
-        <p class="text-sm text-gray-400">Secure relay via Tauri</p>
-      </div>
-      <div id="status" class="flex items-center space-x-2">
-        <span id="statusDot" class="inline-block h-3 w-3 rounded-full bg-red-500 animate-pulse"></span>
-        <span class="text-xs uppercase tracking-wider text-gray-300">Offline</span>
+  <main class="max-w-2xl mx-auto px-4 py-12 space-y-6">
+    <!-- Header -->
+    <header class="glass rounded-2xl border border-gray-800/50 p-6 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold neon tracking-tight">👻 Ghost Relay</h1>
+          <p class="text-sm text-gray-400 mt-1 font-medium">End-to-end encrypted messaging</p>
+        </div>
+        <div id="status" class="flex items-center space-x-3">
+          <div class="flex flex-col items-end">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-300" id="statusText">Offline</span>
+            <span class="text-xs text-gray-500">Status</span>
+          </div>
+          <span id="statusDot" class="h-3 w-3 rounded-full status-offline animate-pulse-glow"></span>
+        </div>
       </div>
     </header>
 
-    <section id="loginCard" class="glass rounded-xl border border-gray-800 p-4 space-y-3">
-      <div class="text-sm text-gray-300">Local unlock</div>
-      <div class="space-y-2">
-        <input id="username" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Username" />
-        <input id="password" type="password" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Password (local encryption)" />
+    <!-- Login Card -->
+    <section id="loginCard" class="glass rounded-2xl border border-gray-800/50 p-8 shadow-2xl space-y-6">
+      <div>
+        <h2 class="text-xl font-semibold text-white mb-2">🔐 Account Access</h2>
+        <p class="text-sm text-gray-400">Sign in or create your secure account</p>
       </div>
-      <button id="loginBtn" class="w-full py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Unlock & Connect</button>
-      <button id="registerBtn" class="w-full py-2 rounded border border-accent text-accent hover:bg-accent/10 transition">Create New Account</button>
-      <button id="recoverBtn" class="w-full py-2 rounded border border-gray-600 text-gray-400 hover:text-accent hover:border-accent transition text-sm">New Device? Recover with Phrase</button>
-    </section>
-
-    <section id="chatCard" class="glass rounded-xl border border-gray-800 p-4 space-y-3 hidden">
-      <div class="flex items-center justify-between text-sm text-gray-300">
-        <span>Relay</span>
-        <div class="flex items-center space-x-2">
-          <span class="h-2 w-2 rounded-full bg-red-500" id="wsDot"></span>
-          <span id="wsState">Disconnected</span>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Username</label>
+          <input id="username" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none" placeholder="Enter username" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Password</label>
+          <input id="password" type="password" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none" placeholder="Local encryption password" />
         </div>
       </div>
-      <div id="messages" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
-      <div class="space-y-2">
-        <textarea id="textInput" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" rows="2" placeholder="Type a message..."></textarea>
-        <div class="flex items-center space-x-2">
-          <button id="sendBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Send Text</button>
-          <button id="recordBtn" class="px-3 py-2 rounded border border-accent text-accent hover:bg-accent/10 transition" title="Hold to record">Hold Voice</button>
+      <div class="space-y-3">
+        <button id="loginBtn" class="w-full py-3.5 rounded-lg btn-primary text-black font-bold text-sm uppercase tracking-wide">
+          🚀 Unlock & Connect
+        </button>
+        <button id="registerBtn" class="w-full py-3.5 rounded-lg btn-secondary text-accent font-semibold text-sm uppercase tracking-wide">
+          ✨ Create New Account
+        </button>
+        <button id="recoverBtn" class="w-full py-3 rounded-lg border border-gray-700 text-gray-400 hover:text-accent hover:border-accent hover:bg-gray-900/50 transition text-sm font-medium">
+          🔑 Recover with Recovery Phrase
+        </button>
+      </div>
+    </section>
+
+    <!-- Chat Card -->
+    <section id="chatCard" class="glass rounded-2xl border border-gray-800/50 shadow-2xl hidden overflow-hidden">
+      <!-- Chat Header -->
+      <div class="bg-black/40 border-b border-gray-800/50 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-white">💬 Relay Chat</h3>
+            <p class="text-xs text-gray-500">Secure messaging active</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div class="flex flex-col items-end">
+              <span id="wsState" class="text-xs font-semibold text-gray-300">Disconnected</span>
+              <span class="text-xs text-gray-500">WebSocket</span>
+            </div>
+            <span class="h-2.5 w-2.5 rounded-full status-offline animate-pulse-glow" id="wsDot"></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Messages Area -->
+      <div class="p-6 bg-black/20">
+        <div id="messages" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
+      </div>
+      
+      <!-- Input Area -->
+      <div class="bg-black/40 border-t border-gray-800/50 p-6 space-y-3">
+        <textarea id="textInput" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none resize-none" rows="2" placeholder="Type your secure message..."></textarea>
+        <div class="flex items-center space-x-3">
+          <button id="sendBtn" class="flex-1 py-3.5 rounded-lg btn-primary text-black font-bold text-sm uppercase tracking-wide">
+            📤 Send Message
+          </button>
+          <button id="recordBtn" class="px-6 py-3.5 rounded-lg btn-secondary text-accent font-semibold text-sm uppercase tracking-wide whitespace-nowrap" title="Hold to record voice message">
+            🎤 Voice
+          </button>
         </div>
       </div>
     </section>
 
     <!-- Mnemonic Display Modal -->
-    <section id="mnemonicModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-      <div class="glass rounded-xl border border-accent p-6 max-w-md w-full space-y-4">
-        <h2 class="text-xl font-semibold text-accent neon">⚠️ SECRET RECOVERY PHRASE</h2>
-        <p class="text-sm text-gray-300">Save this phrase to log in on other devices. Keep it safe and never share it!</p>
-        <div id="mnemonicDisplay" class="bg-black/80 border border-gray-700 rounded p-4 text-center font-mono text-sm break-words select-all"></div>
-        <div class="flex space-x-2">
-          <button id="copyMnemonicBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Copy to Clipboard</button>
-          <button id="closeMnemonicBtn" class="flex-1 py-2 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition">I've Saved It</button>
+    <section id="mnemonicModal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+      <div class="glass rounded-2xl border-2 border-accent/50 p-8 max-w-lg w-full space-y-6 shadow-2xl">
+        <div class="text-center">
+          <div class="text-5xl mb-4">⚠️</div>
+          <h2 class="text-2xl font-bold text-accent neon mb-2">SECRET RECOVERY PHRASE</h2>
+          <p class="text-sm text-gray-300 leading-relaxed">This 12-word phrase is the <span class="text-accent font-semibold">only way</span> to recover your account. Write it down and keep it in a safe place. Never share it with anyone!</p>
+        </div>
+        <div class="bg-gradient-to-br from-black/90 to-gray-900/90 border-2 border-gray-700 rounded-xl p-6 shadow-inner">
+          <div id="mnemonicDisplay" class="text-center font-mono text-base leading-relaxed break-words select-all text-accent font-semibold tracking-wide"></div>
+        </div>
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+          <p class="text-xs text-yellow-200 text-center font-medium">🔒 Store this phrase offline. Anyone with access to it can control your account.</p>
+        </div>
+        <div class="flex space-x-3">
+          <button id="copyMnemonicBtn" class="flex-1 py-3.5 rounded-lg btn-primary text-black font-bold text-sm uppercase tracking-wide">
+            📋 Copy to Clipboard
+          </button>
+          <button id="closeMnemonicBtn" class="flex-1 py-3.5 rounded-lg border-2 border-gray-600 text-gray-200 hover:bg-gray-800 hover:border-gray-500 transition font-semibold text-sm uppercase tracking-wide">
+            ✓ I've Saved It
+          </button>
         </div>
       </div>
     </section>
 
     <!-- Recovery Modal -->
-    <section id="recoveryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
-      <div class="glass rounded-xl border border-gray-800 p-6 max-w-md w-full space-y-4">
-        <h2 class="text-xl font-semibold text-accent neon">Recover Account</h2>
-        <p class="text-sm text-gray-400">Enter your username and 12-word recovery phrase</p>
-        <div class="space-y-2">
-          <input id="recoverUsername" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="Username" />
-          <input id="recoverPassword" type="password" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent" placeholder="New Password (local encryption)" />
-          <textarea id="recoverPhrase" class="w-full bg-black/60 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-accent font-mono text-sm" rows="4" placeholder="Enter your 12-word recovery phrase separated by spaces"></textarea>
+    <section id="recoveryModal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+      <div class="glass rounded-2xl border border-gray-800/50 p-8 max-w-lg w-full space-y-6 shadow-2xl">
+        <div class="text-center">
+          <div class="text-4xl mb-3">🔑</div>
+          <h2 class="text-2xl font-bold text-accent neon mb-2">Recover Your Account</h2>
+          <p class="text-sm text-gray-400">Enter your credentials and 12-word recovery phrase to restore access</p>
         </div>
-        <div class="flex space-x-2">
-          <button id="confirmRecoverBtn" class="flex-1 py-2 rounded bg-accentDim hover:bg-emerald-700 text-white font-semibold transition">Recover & Connect</button>
-          <button id="cancelRecoverBtn" class="flex-1 py-2 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition">Cancel</button>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Username</label>
+            <input id="recoverUsername" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none" placeholder="Your username" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">New Password</label>
+            <input id="recoverPassword" type="password" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none" placeholder="Create a new password" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Recovery Phrase</label>
+            <textarea id="recoverPhrase" class="w-full input-field rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none font-mono text-sm resize-none" rows="4" placeholder="word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"></textarea>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <button id="confirmRecoverBtn" class="flex-1 py-3.5 rounded-lg btn-primary text-black font-bold text-sm uppercase tracking-wide">
+            🔓 Recover & Connect
+          </button>
+          <button id="cancelRecoverBtn" class="flex-1 py-3.5 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500 transition font-semibold text-sm uppercase tracking-wide">
+            Cancel
+          </button>
         </div>
       </div>
     </section>
