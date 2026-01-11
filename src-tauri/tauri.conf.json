@@ -7,8 +7,8 @@
   "build": {
     "distDir": "../src",
     "devPath": "../src",
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
+    "beforeDevCommand": "npm run bundle",
+    "beforeBuildCommand": "npm run bundle",
     "withGlobalTauri": true
   },
   "tauri": {
