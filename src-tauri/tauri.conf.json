@@ -6,7 +6,9 @@
   },
   "build": {
     "distDir": "../src",
-    "devPath": "../src"
+    "devPath": "../src",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
   },
   "tauri": {
     "windows": [
@@ -19,20 +21,30 @@
     ],
     "allowlist": {
       "all": false,
+      "fs": {
+        "all": true,
+        "scope": ["$APP/*", "$RESOURCE/*"]
+      },
+      "path": {
+        "all": true
+      },
       "http": {
         "all": true,
-        "scope": ["https://ghost-relay-server--el-houss-brahim.replit.app/*", "wss://ghost-relay-server--el-houss-brahim.replit.app/*"]
+        "scope": ["https://**", "wss://**"]
       },
       "shell": {
-        "all": true
+        "all": true,
+        "open": true
       },
       "clipboard": {
-        "all": true
+        "all": true,
+        "readText": true,
+        "writeText": true
       }
     },
     "bundle": {
       "active": true,
-      "targets": ["msi", "appimage", "deb", "rpm"],
+      "targets": ["appimage", "deb", "rpm"],
       "identifier": "com.ghost.messenger",
       "icon": [
         "icons/32x32.png",
@@ -40,10 +52,15 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ]
+      ],
+      "linux": {
+        "deb": {
+          "depends": []
+        }
+      }
     },
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ghost-relay-server--el-houss-brahim.replit.app wss://ghost-relay-server--el-houss-brahim.replit.app; img-src 'self' data:; media-src 'self' data: blob:;"
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ghost-relay-server--el-houss-brahim.replit.app wss://ghost-relay-server--el-houss-brahim.replit.app https://cdn.jsdelivr.net; img-src 'self' data:; media-src 'self' data: blob:;"
     }
   }
 }
