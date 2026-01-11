@@ -38,13 +38,9 @@ jobs:
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
-        format: 
-          - ${{ (github.event_name == 'workflow_dispatch' && inputs.linux_format != 'all') && inputs.linux_format || 'appimage' }}
-          - ${{ (github.event_name != 'workflow_dispatch' || inputs.linux_format == 'all') && 'deb' || '' }}
-          - ${{ (github.event_name != 'workflow_dispatch' || inputs.linux_format == 'all') && 'rpm' || '' }}
-        exclude:
-          - format: ''
+        format: [appimage, deb, rpm]
     steps:
       - uses: actions/checkout@v4
       - name: Install system deps
