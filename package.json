@@ -1,7 +1,7 @@
 {
   "name": "ghost-relay",
   "private": true,
-  "version": "0.1.3.1",
+  "version": "0.1.4",
   "description": "Ghost Relay Tauri client",
   "scripts": {
     "tauri": "tauri",
