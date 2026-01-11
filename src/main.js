@@ -335,11 +335,8 @@ async function handleLogin() {
   if (!sodium || !sodium.ready) {
     console.error("Crypto library not ready yet. Please wait.");
     alert("System initializing... try again in 2 seconds.");
-    setLoading('btn-login', false);
     return;
   }
-
-  await sodium.ready;
   
   const username = els.username.value.trim();
   const password = els.password.value;
