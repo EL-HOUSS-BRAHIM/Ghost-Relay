@@ -331,12 +331,7 @@ function connectWs() {
 }
 
 async function handleLogin() {
-  // Check if libsodium is ready
-  if (!sodium || !sodium.ready) {
-    console.error("Crypto library not ready yet. Please wait.");
-    alert("System initializing... try again in 2 seconds.");
-    return;
-  }
+  await sodium.ready;
   
   const username = els.username.value.trim();
   const password = els.password.value;
