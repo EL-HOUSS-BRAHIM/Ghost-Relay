@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Enter key handler for text input
   if (els.textInput) {
     els.textInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey && document.activeElement === els.textInput) {
         e.preventDefault();
         sendMessage();
       }
