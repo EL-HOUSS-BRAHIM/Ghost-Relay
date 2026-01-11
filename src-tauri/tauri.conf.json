@@ -17,7 +17,8 @@
         "title": "Ghost Relay",
         "width": 400,
         "height": 600,
-        "resizable": true
+        "resizable": true,
+        "url": "index.html"
       }
     ],
     "allowlist": {
