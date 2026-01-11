@@ -525,27 +525,24 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Login button
-  const loginBtn = document.getElementById('btn-login');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', handleLogin);
+  if (els.loginBtn) {
+    els.loginBtn.addEventListener('click', handleLogin);
     console.log("Login button attached.");
   } else {
     console.error("CRITICAL: Login button (id='btn-login') not found!");
   }
 
   // Register button
-  const registerBtn = document.getElementById('btn-register');
-  if (registerBtn) {
-    registerBtn.addEventListener('click', handleRegister);
+  if (els.registerBtn) {
+    els.registerBtn.addEventListener('click', handleRegister);
     console.log("Register button attached.");
   } else {
     console.error("CRITICAL: Register button (id='btn-register') not found!");
   }
 
   // Recovery link
-  const linkRecovery = document.getElementById('link-recovery');
-  if (linkRecovery) {
-    linkRecovery.addEventListener('click', (e) => {
+  if (els.recoverBtn) {
+    els.recoverBtn.addEventListener('click', (e) => {
       e.preventDefault();
       showScreen('screen-recovery');
     });
@@ -555,9 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Cancel recovery button
-  const linkBackLogin = document.getElementById('link-back-login');
-  if (linkBackLogin) {
-    linkBackLogin.addEventListener('click', (e) => {
+  if (els.cancelRecoverBtn) {
+    els.cancelRecoverBtn.addEventListener('click', (e) => {
       e.preventDefault();
       showScreen('screen-login');
     });
@@ -567,22 +563,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Restore button (recovery screen)
-  const btnRestore = document.getElementById('btn-restore');
-  if (btnRestore) {
-    btnRestore.addEventListener('click', handleRecovery);
+  if (els.confirmRecoverBtn) {
+    els.confirmRecoverBtn.addEventListener('click', handleRecovery);
     console.log("Restore button attached.");
   } else {
     console.error("CRITICAL: Restore button (id='btn-restore') not found!");
   }
 
   // Copy mnemonic button
-  const btnCopyMnemonic = document.getElementById('btn-copy-mnemonic');
-  if (btnCopyMnemonic) {
-    btnCopyMnemonic.addEventListener('click', () => {
+  if (els.copyMnemonicBtn) {
+    els.copyMnemonicBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(els.mnemonicDisplay.textContent);
-      btnCopyMnemonic.textContent = '✓ COPIED!';
+      els.copyMnemonicBtn.textContent = '✓ COPIED!';
       setTimeout(() => {
-        btnCopyMnemonic.textContent = 'COPY';
+        els.copyMnemonicBtn.textContent = 'COPY';
       }, 2000);
     });
     console.log("Copy mnemonic button attached.");
@@ -591,9 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Close mnemonic button
-  const btnCloseMnemonic = document.getElementById('btn-close-mnemonic');
-  if (btnCloseMnemonic) {
-    btnCloseMnemonic.addEventListener('click', async () => {
+  if (els.closeMnemonicBtn) {
+    els.closeMnemonicBtn.addEventListener('click', async () => {
       els.mnemonicModal.classList.add('hidden');
       showScreen('screen-chat');
       await syncUserList();
@@ -606,29 +599,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Send button
-  const btnSend = document.getElementById('btn-send');
-  if (btnSend) {
-    btnSend.addEventListener('click', sendMessage);
+  if (els.sendBtn) {
+    els.sendBtn.addEventListener('click', sendMessage);
     console.log("Send button attached.");
   } else {
     console.error("CRITICAL: Send button (id='btn-send') not found!");
   }
 
   // Record button
-  const btnRecord = document.getElementById('btn-record');
-  if (btnRecord) {
-    btnRecord.addEventListener('mousedown', startRecording);
-    btnRecord.addEventListener('mouseup', stopRecording);
-    btnRecord.addEventListener('mouseleave', stopRecording);
+  if (els.recordBtn) {
+    els.recordBtn.addEventListener('mousedown', startRecording);
+    els.recordBtn.addEventListener('mouseup', stopRecording);
+    els.recordBtn.addEventListener('mouseleave', stopRecording);
     console.log("Record button attached.");
   } else {
     console.error("CRITICAL: Record button (id='btn-record') not found!");
   }
 
   // Logout button
-  const btnLogout = document.getElementById('btn-logout');
-  if (btnLogout) {
-    btnLogout.addEventListener('click', () => {
+  if (els.logoutBtn) {
+    els.logoutBtn.addEventListener('click', () => {
       if (ws) ws.close();
       showScreen('screen-login');
       els.username.value = '';
@@ -641,9 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Enter key handler for text input
-  const textInput = document.getElementById('text-input');
-  if (textInput) {
-    textInput.addEventListener('keydown', (e) => {
+  if (els.textInput) {
+    els.textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
