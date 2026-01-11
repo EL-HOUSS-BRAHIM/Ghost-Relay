@@ -68,6 +68,25 @@ function showScreen(screenId) {
   }
 }
 
+// Loading state helper function
+function setLoading(btnId, isLoading, loadingText = "WAIT...") {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  if (isLoading) {
+    btn.dataset.originalText = btn.innerText;
+    btn.innerText = loadingText;
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+    btn.style.cursor = "wait";
+  } else {
+    btn.innerText = btn.dataset.originalText || "ENTER";
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  }
+}
+
 function setStatus(online) {
   if (els.statusDot) {
     els.statusDot.classList.toggle('status-online', online);
@@ -313,6 +332,7 @@ function connectWs() {
 
 async function handleLogin() {
   await sodium.ready;
+  
   const username = els.username.value.trim();
   const password = els.password.value;
   if (!username || !password) {
@@ -326,6 +346,10 @@ async function handleLogin() {
     return;
   }
 
+  // Set loading state
+  setLoading('btn-login', true, 'CONNECTING...');
+  console.log("Attempting to reach server at " + serverUrl);
+
   try {
     const keys = await decryptKeysFromStorage(stored, password);
     keypairSign = {
@@ -336,15 +360,16 @@ async function handleLogin() {
       publicKey: sodium.from_base64(keys.pubEncrypt),
       privateKey: sodium.from_base64(keys.privEncrypt),
     };
+
+    showScreen('screen-chat');
+    await syncUserList();
+    startUserSync();
+    connectWs();
   } catch (e) {
     alert('Incorrect password');
-    return;
+  } finally {
+    setLoading('btn-login', false);
   }
-
-  showScreen('screen-chat');
-  await syncUserList();
-  startUserSync();
-  connectWs();
 }
 
 async function handleRegister() {
@@ -404,6 +429,9 @@ async function handleRecovery() {
     return;
   }
   
+  // Set loading state
+  setLoading('btn-restore', true, 'RECOVERING...');
+  
   try {
     // Derive keypairs from mnemonic
     const keypairs = deriveKeypairFromMnemonic(phrase);
@@ -440,6 +468,8 @@ async function handleRecovery() {
   } catch (e) {
     alert('Recovery failed. If you have an existing account with a different phrase, please contact admin to reset.');
     console.error(e);
+  } finally {
+    setLoading('btn-restore', false);
   }
 }
 
