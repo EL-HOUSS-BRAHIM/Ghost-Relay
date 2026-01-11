@@ -92,12 +92,15 @@ jobs:
       
       - name: Build Tauri app
         run: npm run tauri build
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ghost-relay-${{ steps.version.outputs.VERSION }}-linux-${{ matrix.format }}
           path: |
-            src-tauri/target/release/bundle/${{ matrix.format }}/*
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
 
   build-windows:
     if: |
@@ -138,6 +141,7 @@ jobs:
       
       - name: Build Tauri app
         run: npm run tauri build
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -157,10 +161,17 @@ jobs:
         with:
           path: artifacts
       
+      - name: Display structure of downloaded files
+        run: ls -R artifacts/
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.msi
           draft: false
           prerelease: ${{ contains(github.ref, 'beta') }}
           generate_release_notes: true
