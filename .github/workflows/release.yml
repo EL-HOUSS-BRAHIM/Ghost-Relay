@@ -2,12 +2,11 @@ name: Ghost Relay Master Build
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch: # Allows manual trigger button in GitHub Actions
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-  # JOB 1: DESKTOP (Windows & Linux)
+  # JOB 1: DESKTOP (Windows Portable & Linux AppImage)
   desktop-release:
     permissions:
       contents: write
@@ -22,8 +21,7 @@ jobs:
       
       - name: Setup Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
           
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -34,36 +32,42 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 
-      - name: Build & Upload (Desktop)
+      # Build & Upload Bundles (AppImage / Setup.exe)
+      - name: Build with Tauri Action
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # This auto-tags releases
+          tagName: v__VERSION__
           releaseName: 'Ghost Relay v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
 
-  # JOB 2: ANDROID (The Cloud Builder)
+      # SPECIAL STEP: Upload Raw Portable EXE (Windows Only)
+      - name: Upload Portable Windows Binary
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-relay-portable-windows
+          # This grabs the actual executable, not the installer
+          path: src-tauri/target/release/ghost-relay.exe
+          if-no-files-found: warn
+
+  # JOB 2: ANDROID (Cloud Builder)
   android-release:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Java
+      - name: Setup Environment
         uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Node & Rust
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { distribution: 'corretto', java-version: '17' }
+        
+      - uses: android-actions/setup-android@v3
+      
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+        
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
@@ -71,27 +75,20 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          cargo install tauri-cli --version "^2.0.0-beta" || cargo install tauri-cli # Install CLI if missing
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+          cargo install tauri-cli --version "^2.0.0-beta" || cargo install tauri-cli
+          sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential
 
-      - name: Initialize Android & Inject Permissions
+      - name: Init & Inject Permissions
         run: |
-          # 1. Init Android (Non-interactive)
           cargo tauri android init
-          
-          # 2. Inject Permissions using the script we created
           chmod +x scripts/inject_perms.sh
           ./scripts/inject_perms.sh
 
-      - name: Build APK (Debug)
+      - name: Build APK
         run: cargo tauri android build --apk --target aarch64-linux-android
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ghost-relay-android-arm64
-          path: src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
-          if-no-files-found: warn
-          # Fallback path if universal isn't generated
-          # path: src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk 
+          name: ghost-relay-android
+          path: src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk 
