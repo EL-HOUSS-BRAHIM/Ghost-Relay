@@ -40,8 +40,8 @@ const { Buffer } = require('buffer');
 // Make Buffer global for bip39
 window.Buffer = Buffer;
 
-const serverUrl = 'https://ghost-relay-server--el-houss-brahim.replit.app';
-const wsUrl = 'wss://ghost-relay-server--el-houss-brahim.replit.app/ws';
+const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
+const wsUrl = 'wss://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app/ws';
 const APP_SECRET = 'ghost-relay-secure-2026-v1'; // API key for backend authentication
 
 let keypairSign = null; // Ed25519
@@ -516,7 +516,19 @@ async function handleRegister() {
     // Register with backend
     const publicKeyB64 = sodium.to_base64(keypairSign.publicKey);
     const encKeyB64 = sodium.to_base64(keypairEncrypt.publicKey);
-    await registerUser(username, publicKeyB64, encKeyB64);
+    const apiResult = await registerUser(username, publicKeyB64, encKeyB64);
+    
+    // Check if API registration succeeded
+    if (!apiResult.success) {
+      if (apiResult.error === 'conflict') {
+         // User exists, maybe just logging in on new device?
+         // For now, we allow them to proceed locally, but warn
+         console.warn("[WARN] Username taken remotely, proceed with local key generation only.");
+      } else {
+         // Throw to stop the process if it's a critical network/auth error
+         throw new Error('Registration failed on server: ' + apiResult.error);
+      }
+    }
     
     // Display mnemonic to user
     els.mnemonicDisplay.textContent = mnemonic;
