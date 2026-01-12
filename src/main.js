@@ -113,14 +113,42 @@ function setWsState(connected) {
 }
 
 function deriveKey(password, salt) {
-  return sodium.crypto_pwhash(
-    32,
-    password,
-    salt,
-    sodium.crypto_pwhash_OPSLIMIT_MODERATE,
-    sodium.crypto_pwhash_MEMLIMIT_MODERATE,
-    sodium.crypto_pwhash_ALG_DEFAULT
-  );
+  console.log("[DEBUG] deriveKey called with password length:", password.length, "salt length:", salt.length);
+  
+  try {
+    // Use crypto_generichash (BLAKE2b) instead of crypto_pwhash for browser compatibility
+    if (typeof sodium.crypto_generichash === 'function') {
+      console.log("[DEBUG] Using crypto_generichash for key derivation");
+      
+      // Combine password and salt
+      const combined = new Uint8Array(password.length + salt.length);
+      combined.set(new TextEncoder().encode(password), 0);
+      combined.set(salt, password.length);
+      
+      // Hash with BLAKE2b to get 32-byte key
+      const result = sodium.crypto_generichash(32, combined);
+      console.log("[DEBUG] Key derivation successful with generichash, key length:", result.length);
+      return result;
+    } 
+    // Fallback to crypto_hash_sha256 if generichash not available
+    else if (typeof sodium.crypto_hash_sha256 === 'function') {
+      console.log("[DEBUG] Using crypto_hash_sha256 for key derivation");
+      
+      // Combine password and salt
+      const combined = new Uint8Array(password.length + salt.length);
+      combined.set(new TextEncoder().encode(password), 0);
+      combined.set(salt, password.length);
+      
+      const result = sodium.crypto_hash_sha256(combined);
+      console.log("[DEBUG] Key derivation successful with sha256, key length:", result.length);
+      return result;
+    } else {
+      throw new Error('No suitable hash function available in libsodium');
+    }
+  } catch (error) {
+    console.error("[ERROR] Key derivation failed:", error);
+    throw error;
+  }
 }
 
 function saveKeys(encrypted) {
@@ -132,23 +160,87 @@ function loadKeys() {
 }
 
 async function encryptKeysForStorage(keysObj, password) {
-  const salt = sodium.randombytes_buf(16);
-  const key = deriveKey(password, salt);
-  const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
-  const plaintext = sodium.from_string(JSON.stringify(keysObj));
-  const cipher = sodium.crypto_secretbox(plaintext, nonce, key);
-  return sodium.to_base64(salt) + ':' + sodium.to_base64(nonce) + ':' + sodium.to_base64(cipher);
+  console.log("[DEBUG] encryptKeysForStorage called");
+  
+  try {
+    const salt = sodium.randombytes_buf(16);
+    const key = deriveKey(password, salt);
+    const plaintext = sodium.from_string(JSON.stringify(keysObj));
+    
+    console.log("[DEBUG] Checking available encryption functions...");
+    
+    // Try different encryption methods available in browser libsodium
+    let cipher, nonce;
+    
+    if (typeof sodium.crypto_aead_xchacha20poly1305_ietf_encrypt === 'function') {
+      console.log("[DEBUG] Using crypto_aead_xchacha20poly1305_ietf_encrypt");
+      nonce = sodium.randombytes_buf(24); // XChaCha20-Poly1305 nonce size
+      cipher = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(plaintext, null, null, nonce, key);
+    }
+    else if (typeof sodium.crypto_aead_chacha20poly1305_ietf_encrypt === 'function') {
+      console.log("[DEBUG] Using crypto_aead_chacha20poly1305_ietf_encrypt");
+      nonce = sodium.randombytes_buf(12); // ChaCha20-Poly1305 nonce size  
+      cipher = sodium.crypto_aead_chacha20poly1305_ietf_encrypt(plaintext, null, null, nonce, key);
+    }
+    else if (typeof sodium.crypto_box_seal === 'function') {
+      console.log("[DEBUG] Using crypto_box_seal (anonymous encryption)");
+      // For crypto_box_seal, we need a keypair from the key
+      const keypair = sodium.crypto_box_seed_keypair(key);
+      cipher = sodium.crypto_box_seal(plaintext, keypair.publicKey);
+      nonce = new Uint8Array(0); // No nonce needed for seal
+    } else {
+      throw new Error('No suitable encryption function available');
+    }
+    
+    console.log("[DEBUG] Encryption successful");
+    return sodium.to_base64(salt) + ':' + sodium.to_base64(nonce) + ':' + sodium.to_base64(cipher);
+    
+  } catch (error) {
+    console.error("[ERROR] Encryption failed:", error);
+    throw error;
+  }
 }
 
 async function decryptKeysFromStorage(data, password) {
-  const [saltB64, nonceB64, cipherB64] = data.split(':');
-  if (!saltB64 || !nonceB64 || !cipherB64) throw new Error('Invalid stored data');
-  const salt = sodium.from_base64(saltB64);
-  const nonce = sodium.from_base64(nonceB64);
-  const cipher = sodium.from_base64(cipherB64);
-  const key = deriveKey(password, salt);
-  const plain = sodium.crypto_secretbox_open_easy(cipher, nonce, key);
-  return JSON.parse(sodium.to_string(plain));
+  console.log("[DEBUG] decryptKeysFromStorage called");
+  
+  try {
+    const [saltB64, nonceB64, cipherB64] = data.split(':');
+    if (!saltB64 || !nonceB64 || !cipherB64) throw new Error('Invalid stored data');
+    
+    const salt = sodium.from_base64(saltB64);
+    const nonce = sodium.from_base64(nonceB64);
+    const cipher = sodium.from_base64(cipherB64);
+    const key = deriveKey(password, salt);
+    
+    console.log("[DEBUG] Attempting decryption...");
+    
+    let plain;
+    
+    // Try different decryption methods based on nonce size
+    if (nonce.length === 24 && typeof sodium.crypto_aead_xchacha20poly1305_ietf_decrypt === 'function') {
+      console.log("[DEBUG] Using crypto_aead_xchacha20poly1305_ietf_decrypt");
+      plain = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, cipher, null, nonce, key);
+    }
+    else if (nonce.length === 12 && typeof sodium.crypto_aead_chacha20poly1305_ietf_decrypt === 'function') {
+      console.log("[DEBUG] Using crypto_aead_chacha20poly1305_ietf_decrypt");
+      plain = sodium.crypto_aead_chacha20poly1305_ietf_decrypt(null, cipher, null, nonce, key);
+    }
+    else if (nonce.length === 0 && typeof sodium.crypto_box_seal_open === 'function') {
+      console.log("[DEBUG] Using crypto_box_seal_open");
+      const keypair = sodium.crypto_box_seed_keypair(key);
+      plain = sodium.crypto_box_seal_open(cipher, keypair.publicKey, keypair.privateKey);
+    } else {
+      throw new Error('No suitable decryption function available for nonce length: ' + nonce.length);
+    }
+    
+    console.log("[DEBUG] Decryption successful");
+    return JSON.parse(sodium.to_string(plain));
+    
+  } catch (error) {
+    console.error("[ERROR] Decryption failed:", error);
+    throw error;
+  }
 }
 
 // Generate keypair from BIP39 mnemonic
