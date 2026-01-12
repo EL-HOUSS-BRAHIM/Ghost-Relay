@@ -58,11 +58,7 @@
       "windows": {
         "wix": null,
         "nsis": {
-          "installMode": "currentUser",
-          "installerIcon": "icons/icon.ico",
-          "allowElevation": false,
-          "createDesktopShortcut": true,
-          "createStartMenuShortcut": true
+          "installMode": "currentUser"
         }
       }
     },
