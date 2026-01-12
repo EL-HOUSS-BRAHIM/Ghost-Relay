@@ -145,6 +145,7 @@ jobs:
           path: |
             src-tauri/target/release/bundle/msi/*.msi
       
+      # Upload standalone portable executable (always built by Tauri)
       - name: Upload portable EXE
         uses: actions/upload-artifact@v4
         with:
