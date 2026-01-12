@@ -59,23 +59,10 @@
         "wix": null,
         "nsis": {
           "installMode": "currentUser",
-          "displayLanguageSelector": true,
           "installerIcon": "icons/icon.ico",
-          "uninstallerIcon": "icons/icon.ico",
           "allowElevation": false,
           "createDesktopShortcut": true,
-          "createStartMenuShortcut": true,
-          "license": null,
-          "headerImage": null,
-          "sidebarImage": null,
-          "template": null,
-          "compression": "lzma",
-          "requiresReboot": false,
-          "deleteAppDataOnUninstall": false,
-          "languages": ["English"],
-          "customLanguageFiles": {},
-          "preInstallSection": null,
-          "preUninstallSection": null
+          "createStartMenuShortcut": true
         }
       }
     },
