@@ -373,43 +373,67 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
-  await sodium.ready;
-  const username = els.username.value.trim();
-  const password = els.password.value;
-  if (!username || !password) {
-    alert('Username and password required');
-    return;
-  }
+  console.log("[DEBUG] Register button clicked!");
+  try {
+    console.log("[DEBUG] Checking if bip39 is available:", typeof bip39);
+    console.log("[DEBUG] bip39 object:", bip39);
+    
+    if (typeof bip39 === 'undefined' || !bip39) {
+      throw new Error('bip39 library not available');
+    }
+    
+    if (typeof bip39.generateMnemonic !== 'function') {
+      throw new Error('bip39.generateMnemonic is not a function');
+    }
+    
+    await sodium.ready;
+    console.log("[DEBUG] Sodium ready");
+    
+    const username = els.username.value.trim();
+    const password = els.password.value;
+    console.log("[DEBUG] Username:", username, "Password length:", password.length);
+    
+    if (!username || !password) {
+      alert('Username and password required');
+      return;
+    }
 
-  // Generate 12-word mnemonic
-  const mnemonic = bip39.generateMnemonic(128); // 128 bits = 12 words
-  
-  // Derive keypairs from mnemonic
-  const keypairs = deriveKeypairFromMnemonic(mnemonic);
-  keypairSign = keypairs.sign;
-  keypairEncrypt = keypairs.encrypt;
-  
-  // Prepare keys for storage (including mnemonic)
-  const keysObj = {
-    pubSign: sodium.to_base64(keypairSign.publicKey),
-    privSign: sodium.to_base64(keypairSign.privateKey),
-    pubEncrypt: sodium.to_base64(keypairEncrypt.publicKey),
-    privEncrypt: sodium.to_base64(keypairEncrypt.privateKey),
-    mnemonic: mnemonic // Store the mnemonic encrypted
-  };
-  
-  // Encrypt and save to localStorage
-  const encrypted = await encryptKeysForStorage(keysObj, password);
-  saveKeys(encrypted);
-  
-  // Register with backend
-  const publicKeyB64 = sodium.to_base64(keypairSign.publicKey);
-  const encKeyB64 = sodium.to_base64(keypairEncrypt.publicKey);
-  await registerUser(username, publicKeyB64, encKeyB64);
-  
-  // Display mnemonic to user
-  els.mnemonicDisplay.textContent = mnemonic;
-  els.mnemonicModal.classList.remove('hidden');
+    console.log("[DEBUG] Generating mnemonic...");
+    // Generate 12-word mnemonic
+    const mnemonic = bip39.generateMnemonic(128); // 128 bits = 12 words
+    console.log("[DEBUG] Mnemonic generated:", mnemonic.split(' ').length, "words");
+    
+    // Derive keypairs from mnemonic
+    const keypairs = deriveKeypairFromMnemonic(mnemonic);
+    keypairSign = keypairs.sign;
+    keypairEncrypt = keypairs.encrypt;
+    
+    // Prepare keys for storage (including mnemonic)
+    const keysObj = {
+      pubSign: sodium.to_base64(keypairSign.publicKey),
+      privSign: sodium.to_base64(keypairSign.privateKey),
+      pubEncrypt: sodium.to_base64(keypairEncrypt.publicKey),
+      privEncrypt: sodium.to_base64(keypairEncrypt.privateKey),
+      mnemonic: mnemonic // Store the mnemonic encrypted
+    };
+    
+    // Encrypt and save to localStorage
+    const encrypted = await encryptKeysForStorage(keysObj, password);
+    saveKeys(encrypted);
+    
+    // Register with backend
+    const publicKeyB64 = sodium.to_base64(keypairSign.publicKey);
+    const encKeyB64 = sodium.to_base64(keypairEncrypt.publicKey);
+    await registerUser(username, publicKeyB64, encKeyB64);
+    
+    // Display mnemonic to user
+    els.mnemonicDisplay.textContent = mnemonic;
+    els.mnemonicModal.classList.remove('hidden');
+    console.log("[DEBUG] Registration completed successfully");
+  } catch (error) {
+    console.error("[ERROR] Registration failed:", error);
+    alert('Registration failed: ' + error.message);
+  }
 }
 
 async function handleRecovery() {
