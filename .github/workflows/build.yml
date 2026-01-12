@@ -138,12 +138,19 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri build
       
-      - name: Upload artifacts
+      - name: Upload MSI artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ghost-relay-${{ steps.version.outputs.VERSION }}-windows-msi
           path: |
             src-tauri/target/release/bundle/msi/*.msi
+      
+      # Upload standalone portable executable (always built by Tauri)
+      - name: Upload portable EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-relay-${{ steps.version.outputs.VERSION }}-windows-exe
+          path: src-tauri/target/release/ghost-relay.exe
 
   create-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
@@ -168,6 +175,7 @@ jobs:
             artifacts/**/*.deb
             artifacts/**/*.rpm
             artifacts/**/*.msi
+            artifacts/**/*.exe
           draft: false
           prerelease: ${{ contains(github.ref, 'beta') }}
           generate_release_notes: true
