@@ -1,9 +1,16 @@
-name: Ghost Relay Master Build
+name: Ghost Relay Release
 
 on:
   push:
-    branches: ["main"]
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   # JOB 1: DESKTOP (Windows Portable & Linux AppImage)
@@ -56,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ghost-relay-portable-windows
-          path: src-tauri/target/release/ghost-relay.exe
+          path: src-tauri/target/release/*.exe
           if-no-files-found: warn
 
       # Upload Linux AppImage
@@ -68,18 +75,18 @@ jobs:
           path: src-tauri/target/release/bundle/appimage/*.AppImage
           if-no-files-found: warn
 
-      # Create release (only on main branch push)
+      # Create release (only when triggered by tag)
       - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.run_number }}
-          name: 'Ghost Relay v${{ github.run_number }}'
-          draft: true
-          prerelease: false
+          tag_name: ${{ github.ref_name }}
+          name: 'Ghost Relay ${{ github.ref_name }}'
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
           files: |
             src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/ghost-relay.exe
+            src-tauri/target/release/*.exe
             src-tauri/target/release/bundle/appimage/*.AppImage
           generate_release_notes: true
         env:
@@ -107,7 +114,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          cargo install tauri-cli --version "^2.0.0-beta" || cargo install tauri-cli
+          cargo install tauri-cli --version "^1.0"
           sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential
 
       - name: Init & Inject Permissions
