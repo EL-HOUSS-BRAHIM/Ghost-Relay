@@ -7,6 +7,9 @@ require('./styles.css');
 
 window.Buffer = Buffer;
 
+// Make Alpine available globally
+window.Alpine = Alpine;
+
 const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
 const wsUrl = 'wss://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app/ws';
 const APP_SECRET = 'ghost-relay-secure-2026-v1';
@@ -157,9 +160,9 @@ function blobToBase64(blob) {
   });
 }
 
-document.addEventListener('alpine:init', () => {
-  Alpine.data('app', () => ({
-    screen: 'login',
+// Register Alpine component
+Alpine.data('app', () => ({
+  screen: 'login',
     statusLabel: 'OFFLINE',
     wsStatus: 'OFFLINE',
     currentUser: '',
@@ -392,7 +395,6 @@ document.addEventListener('alpine:init', () => {
       this.statusLabel = 'OFFLINE';
     }
   }));
-});
 
-window.Alpine = Alpine;
+// Start Alpine
 Alpine.start();

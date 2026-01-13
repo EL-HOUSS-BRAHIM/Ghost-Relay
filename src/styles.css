@@ -108,3 +108,6 @@ body {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.1); }
 }
+
+/* Prevent flash of all screens before Alpine.js initializes */
+[x-cloak] { display: none !important; }
