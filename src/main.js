@@ -1,4 +1,4 @@
-const Alpine = require('alpinejs');
+const AlpineModule = require('alpinejs');
 const anime = require('animejs');
 const sodium = require('libsodium-wrappers');
 const bip39 = require('bip39');
@@ -7,8 +7,9 @@ require('./styles.css');
 
 window.Buffer = Buffer;
 
-// Make Alpine available globally - handle both CommonJS and ES module exports
-window.Alpine = Alpine.default || Alpine;
+// Handle both CommonJS and ES module exports for Alpine.js
+const Alpine = AlpineModule.default || AlpineModule;
+window.Alpine = Alpine;
 
 const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
 const wsUrl = 'wss://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app/ws';
@@ -161,8 +162,7 @@ function blobToBase64(blob) {
 }
 
 // Register Alpine component
-const AlpineInstance = Alpine.default || Alpine;
-AlpineInstance.data('app', () => ({
+Alpine.data('app', () => ({
   screen: 'login',
     statusLabel: 'OFFLINE',
     wsStatus: 'OFFLINE',
@@ -398,4 +398,4 @@ AlpineInstance.data('app', () => ({
   }));
 
 // Start Alpine
-AlpineInstance.start();
+Alpine.start();
