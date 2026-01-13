@@ -175,6 +175,7 @@ jobs:
             artifacts/**/*.deb
             artifacts/**/*.rpm
             artifacts/**/*.exe
+            artifacts/**/ghost-relay.exe
           body: |
             ## 📦 **Ghost Relay v${{ github.ref_name }}**
             
