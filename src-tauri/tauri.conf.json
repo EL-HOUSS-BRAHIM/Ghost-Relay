@@ -46,7 +46,7 @@
     },
     "bundle": {
       "active": true,
-      "targets": ["nsis", "msi", "appimage", "deb", "rpm"],
+      "targets": ["nsis", "appimage", "deb", "rpm"],
       "identifier": "com.ghost.relay",
       "icon": [
         "icons/32x32.png",
@@ -59,17 +59,8 @@
         "wix": null,
         "nsis": {
           "installMode": "currentUser"
-        },
-        "webviewInstallMode": {
-          "type": "downloadBootstrapper"
         }
-      },
-      "resources": [],
-      "externalBin": [],
-      "copyright": "",
-      "category": "Network",
-      "shortDescription": "Encrypted relay messaging",
-      "longDescription": "Ghost Relay - Secure end-to-end encrypted messaging application"
+      }
     },
     "security": {
       "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; font-src 'self'; connect-src 'self' https://ghost-relay-server--el-houss-brahim.replit.app wss://ghost-relay-server--el-houss-brahim.replit.app; img-src 'self' data:; media-src 'self' data: blob:;"
