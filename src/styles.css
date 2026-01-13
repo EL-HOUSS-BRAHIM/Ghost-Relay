@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0a0a0f;
+  font-family: 'Inter', 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+/* Liquid metal + glassmorphism utilities */
+.bubble-metal {
+  background-image: linear-gradient(135deg, #ffffff 0%, #c0c0c0 100%);
+  color: #0a0a0f;
+  box-shadow: 0 10px 30px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.bubble-metal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: shine 2.2s ease-in-out infinite;
+  opacity: 0.35;
+}
+
+.bubble-glass {
+  background: rgba(20, 20, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.glass-card {
+  background: rgba(15, 15, 24, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.45);
+  backdrop-filter: blur(20px);
+}
+
+.btn-metal {
+  position: relative;
+  overflow: hidden;
+  color: #0a0a0f;
+  background-image: linear-gradient(135deg, #ffffff 0%, #c0c0c0 100%);
+  box-shadow: 0 10px 30px rgba(255,255,255,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.btn-metal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  opacity: 0.4;
+}
+
+.btn-metal:hover::after {
+  transform: translateX(100%);
+}
+
+.liquid-blob {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #ffffff, #c0c0c0);
+  box-shadow: 0 0 20px rgba(255,255,255,0.45);
+  animation: blob 2.4s ease-in-out infinite;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #c0c0c0;
+  animation: pulse-glow 1.6s ease-in-out infinite;
+}
+
+.loader-blob {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #c0c0c0 25%, #8f8f95 60%, #0a0a0f 90%);
+  filter: drop-shadow(0 10px 25px rgba(255,255,255,0.15));
+  animation: blob 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes blob {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  33% { transform: translateY(-3px) scale(1.05); }
+  66% { transform: translateY(3px) scale(0.98); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}

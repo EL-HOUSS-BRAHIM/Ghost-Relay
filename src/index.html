@@ -1,378 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="bg-deep">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ghost Relay</title>
-  <style>
-    /* Base Styles - Hacker Theme */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #0d1117;
-      color: #c9d1d9;
-      font-family: 'Courier New', Courier, monospace;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    /* Utility Classes */
-    .hidden {
-      display: none !important;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    /* Typography */
-    h1 {
-      color: #2ea043;
-      font-size: 24px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    h2 {
-      color: #2ea043;
-      font-size: 18px;
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #8b949e;
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-
-    /* Input Fields */
-    input,
-    textarea {
-      width: 100%;
-      background: #161b22;
-      border: 1px solid #30363d;
-      color: #c9d1d9;
-      padding: 10px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-    }
-
-    input:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #2ea043;
-      box-shadow: 0 0 0 2px rgba(46, 160, 67, 0.2);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    /* Buttons */
-    button {
-      width: 100%;
-      background: #2ea043;
-      color: #ffffff;
-      border: none;
-      padding: 12px;
-      font-weight: bold;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    button:hover {
-      background: #238636;
-    }
-
-    button:active {
-      background: #1a7f37;
-    }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid #2ea043;
-      color: #2ea043;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(46, 160, 67, 0.1);
-    }
-
-    /* Links */
-    a {
-      color: #2ea043;
-      text-decoration: none;
-      display: block;
-      text-align: center;
-      margin-top: 10px;
-      font-size: 12px;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* Message Bubbles */
-    .message-bubble {
-      background: #161b22;
-      border: 1px solid #30363d;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-
-    .message-bubble.me {
-      background: #1f2d1f;
-      border-color: #2ea043;
-    }
-
-    .message-bubble.other {
-      background: #161b22;
-      border-color: #30363d;
-    }
-
-    /* Chat Specific */
-    #chat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #30363d;
-    }
-
-    #status-indicator {
-      font-size: 12px;
-      color: #8b949e;
-    }
-
-    #status-indicator.online {
-      color: #2ea043;
-    }
-
-    #status-indicator.offline {
-      color: #f85149;
-    }
-
-    #messages {
-      height: 300px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 4px;
-    }
-
-    #input-area {
-      display: flex;
-      gap: 10px;
-    }
-
-    #input-area textarea {
-      flex: 1;
-      margin-bottom: 0;
-    }
-
-    #input-area button {
-      flex-shrink: 0;
-      width: auto;
-      padding: 10px 15px;
-      margin-bottom: 0;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #0d1117;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #30363d;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #484f58;
-    }
-
-    /* Screen Layout */
-    .screen {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 30px;
-    }
-
-    /* Modal Overlay */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: #161b22;
-      border: 2px solid #2ea043;
-      border-radius: 6px;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-    }
-
-    .warning-box {
-      background: rgba(187, 128, 9, 0.1);
-      border: 1px solid #bb8009;
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 4px;
-      font-size: 12px;
-      color: #e3b341;
-    }
-
-    #mnemonicDisplay {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      padding: 15px;
-      margin: 15px 0;
-      word-wrap: break-word;
-      font-size: 14px;
-      color: #2ea043;
-      text-align: center;
-      border-radius: 4px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 10px;
-    }
-
-    .button-group button {
-      flex: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="./bundle.css">
 </head>
-<body>
-  <div class="container">
-    <!-- Login Screen -->
-    <div id="screen-login" class="screen">
-      <h1>👻 GHOST RELAY</h1>
-      <p style="text-align: center; margin-bottom: 30px; color: #8b949e;">Secure Encrypted Messaging</p>
-      
-      <label for="username">Username</label>
-      <input type="text" id="username" placeholder="Enter username">
-      
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter password">
-      
-      <button id="btn-login">ENTER</button>
-      <button id="btn-register" class="btn-secondary">CREATE NEW ACCOUNT</button>
-      
-      <a href="#" id="link-recovery">Lost Keys? Recover Account</a>
-    </div>
+<body class="min-h-screen bg-deep text-gray-100">
+  <div x-data="app" x-init="init()" class="max-w-6xl mx-auto p-6 space-y-6">
+    <header class="flex items-center justify-between">
+      <div>
+        <p class="text-sm uppercase tracking-[0.3em] text-gray-400">Encrypted Relay</p>
+        <h1 class="text-3xl font-semibold text-white">Ghost Relay</h1>
+      </div>
+      <div class="flex items-center gap-3" x-show="statusLabel">
+        <span class="text-xs text-gray-400">Link</span>
+        <span :class="statusLabel === 'ONLINE' ? 'text-emerald-300' : 'text-rose-300'" class="text-sm font-semibold" x-text="statusLabel"></span>
+      </div>
+    </header>
 
-    <!-- Recovery Screen -->
-    <div id="screen-recovery" class="screen hidden">
-      <h1>🔑 RESTORE IDENTITY</h1>
-      
-      <label for="recover-username">Username</label>
-      <input type="text" id="recover-username" placeholder="Your username">
-      
-      <label for="recover-password">New Password</label>
-      <input type="password" id="recover-password" placeholder="Create new password">
-      
-      <label for="recover-phrase">12-Word Recovery Phrase</label>
-      <textarea id="recover-phrase" placeholder="word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"></textarea>
-      
-      <button id="btn-restore">RESTORE</button>
-      
-      <a href="#" id="link-back-login">Back to Login</a>
-    </div>
+    <!-- Auth Screens -->
+    <section x-show="screen === 'login'" class="grid md:grid-cols-2 gap-6">
+      <div class="glass-card rounded-2xl p-6 space-y-4">
+        <div>
+          <p class="text-sm text-gray-400">Enter your credentials</p>
+          <h2 class="text-xl font-semibold text-white">Login</h2>
+        </div>
+        <div class="space-y-3">
+          <div class="space-y-1">
+            <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
+            <input x-model="form.username" type="text" placeholder="ghost" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs uppercase tracking-widest text-gray-400">Password</label>
+            <input x-model="form.password" type="password" placeholder="••••••" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+          </div>
+          <button @click="handleLogin" class="btn-metal w-full rounded-xl px-4 py-3 font-semibold">Enter</button>
+          <button @click="handleRegister" class="w-full rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">Create New Account</button>
+          <button @click="screen = 'recovery'" class="w-full text-sm text-gray-300 hover:text-white">Lost Keys? Recover Account</button>
+        </div>
+      </div>
+      <div class="glass-card rounded-2xl p-6 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="loader-blob"></div>
+          <div>
+            <p class="text-sm text-gray-400">Offline ready bundle</p>
+            <h3 class="text-lg font-semibold text-white">Bundled Tailwind · Alpine · Anime</h3>
+          </div>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-300 list-disc list-inside">
+          <li>Deep Space Black background (#0a0a0f)</li>
+          <li>Liquid metal buttons and sent bubbles</li>
+          <li>Glassmorphic received bubbles</li>
+          <li>Sidebar typing blob indicators</li>
+        </ul>
+      </div>
+    </section>
+
+    <section x-show="screen === 'recovery'" class="glass-card rounded-2xl p-6 space-y-4">
+      <div>
+        <p class="text-sm text-gray-400">Restore your identity</p>
+        <h2 class="text-xl font-semibold text-white">Recovery</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="md:col-span-1 space-y-2">
+          <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
+          <input x-model="form.recoverUsername" type="text" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+        </div>
+        <div class="md:col-span-1 space-y-2">
+          <label class="text-xs uppercase tracking-widest text-gray-400">New Password</label>
+          <input x-model="form.recoverPassword" type="password" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+        </div>
+        <div class="md:col-span-1 space-y-2">
+          <label class="text-xs uppercase tracking-widest text-gray-400">12-Word Phrase</label>
+          <textarea x-model="form.recoverPhrase" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[70px]"></textarea>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button @click="handleRecovery" class="btn-metal rounded-xl px-4 py-3 font-semibold">Restore</button>
+        <button @click="screen = 'login'" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">Back to Login</button>
+      </div>
+    </section>
 
     <!-- Chat Screen -->
-    <div id="screen-chat" class="screen hidden">
-      <div id="chat-header">
-        <h2>💬 GHOST RELAY</h2>
-        <div>
-          <span id="status-indicator" class="offline">OFFLINE</span>
-          <button id="btn-logout" style="width: auto; padding: 5px 10px; font-size: 11px; margin: 5px 0 0 0;">LOGOUT</button>
+    <section x-show="screen === 'chat'" class="grid lg:grid-cols-[280px_1fr] gap-4">
+      <!-- Sidebar -->
+      <div class="glass-card rounded-2xl p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-gradient-to-br from-white to-gray-400"></div>
+            <div>
+              <p class="text-xs text-gray-400">Logged in as</p>
+              <p class="text-sm font-semibold" x-text="currentUser || 'Anonymous'"></p>
+            </div>
+          </div>
+          <button @click="handleLogout" class="text-xs text-gray-400 hover:text-white">Logout</button>
+        </div>
+        <input x-model="search" type="text" placeholder="Search users" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm" />
+        <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+          <template x-for="user in filteredUsers" :key="user.username">
+            <button @click="selectRecipient(user.username)" class="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-white/5 border border-white/5 transition" :class="selectedRecipient === user.username ? 'border-white/30 bg-white/5' : ''">
+              <div class="h-10 w-10 rounded-full" :style="avatarStyle(user.username)"></div>
+              <div class="flex-1 text-left">
+                <p class="font-semibold" x-text="user.username"></p>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                  <span x-show="typingUsers.has(user.username)" class="liquid-blob"></span>
+                  <span x-show="!typingUsers.has(user.username)">Idle</span>
+                </div>
+              </div>
+            </button>
+          </template>
         </div>
       </div>
 
-      <div id="messages"></div>
+      <!-- Chat area -->
+      <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[70vh]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div>
+            <p class="text-xs text-gray-400">Chatting with</p>
+            <h3 class="text-lg font-semibold" x-text="selectedRecipient || 'Everyone'"></h3>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span class="typing-dot" x-show="Array.from(typingUsers).length > 0"></span>
+            <span x-text="wsStatus"></span>
+          </div>
+        </div>
 
-      <div id="input-area">
-        <textarea id="text-input" placeholder="Type message..."></textarea>
-        <button id="btn-send">SEND</button>
+        <div id="messages" class="flex-1 overflow-y-auto py-4 space-y-3 pr-2">
+          <template x-for="msg in messages" :key="msg.id">
+            <div class="flex" :class="msg.from === currentUser ? 'justify-end' : 'justify-start'">
+              <div class="max-w-[78%] rounded-2xl px-4 py-3 shadow-lg" :class="msg.from === currentUser ? 'bubble-metal text-sm' : 'bubble-glass text-sm text-white'">
+                <div class="flex items-center gap-2 text-xs text-gray-300 mb-1">
+                  <span class="font-semibold" x-text="msg.from"></span>
+                  <span class="opacity-60" x-text="msg.time"></span>
+                </div>
+                <template x-if="msg.t === 'txt'">
+                  <p class="leading-relaxed" x-text="msg.c"></p>
+                </template>
+                <template x-if="msg.t === 'aud'">
+                  <audio class="w-full" controls :src="'data:audio/webm;base64,' + msg.c"></audio>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="pt-3 space-y-2">
+          <textarea x-model="form.message" @input="emitTyping()" placeholder="Type a message" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[90px]"></textarea>
+          <div class="flex items-center gap-3">
+            <button @click="sendMessage('txt')" class="btn-metal rounded-xl px-6 py-3 font-semibold">Send</button>
+            <button @mousedown.prevent="startRecording()" @mouseup.prevent="stopRecording()" @mouseleave.prevent="stopRecording()" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">🎤 Hold Rec</button>
+          </div>
+        </div>
       </div>
-      <button id="btn-record" class="btn-secondary" style="margin-top: 10px;">🎤 HOLD REC</button>
-    </div>
+    </section>
 
     <!-- Mnemonic Modal -->
-    <div id="modal-mnemonic" class="modal-overlay hidden">
-      <div class="modal-content">
-        <h2>⚠️ SECRET RECOVERY PHRASE</h2>
-        <p style="margin-bottom: 15px; color: #8b949e;">Save this 12-word phrase. It's the ONLY way to recover your account!</p>
-        
-        <div id="mnemonicDisplay"></div>
-        
-        <div class="warning-box">
-          🔒 Write this down and store it safely offline. Never share it with anyone!
+    <div x-show="modals.mnemonic" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="glass-card rounded-2xl p-6 max-w-xl w-full space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-white">Secret Recovery Phrase</h3>
+          <button @click="modals.mnemonic = false" class="text-gray-300 hover:text-white">✕</button>
         </div>
-        
-        <div class="button-group">
-          <button id="btn-copy-mnemonic">COPY</button>
-          <button id="btn-close-mnemonic" class="btn-secondary">I'VE SAVED IT</button>
+        <p class="text-sm text-gray-300">Save this 12-word phrase. It's the ONLY way to recover your account.</p>
+        <div class="rounded-xl border border-white/10 bg-deep-light/60 p-4 text-center text-emerald-200" x-text="mnemonic"></div>
+        <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">Write this down and store it safely offline. Never share it.</div>
+        <div class="flex gap-3">
+          <button @click="copyMnemonic" class="btn-metal rounded-xl px-4 py-3 font-semibold">Copy</button>
+          <button @click="closeMnemonic" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">I've Saved It</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- VISUAL DEBUG CONSOLE (Always visible for now) -->
-  <div id="debug-console" style="
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 150px; 
-    background: rgba(0,0,0,0.9); 
-    color: #0f0; 
-    font-family: monospace; 
-    font-size: 10px; 
-    overflow-y: scroll; 
-    border-top: 2px solid #0f0; 
-    z-index: 9999;
-    padding: 5px;
-    pointer-events: none; /* Let clicks pass through if needed, but we need to read it */
-">
-    <div>GHOST SYSTEM LOG INITIALIZED...</div>
-  </div>
-
-  <script src="./bundle.js"></script>
+  <script src="./bundle.js" defer></script>
 </body>
 </html>

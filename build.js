@@ -1,46 +1,63 @@
 const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
+const postcss = require('postcss');
+const tailwindcss = require('tailwindcss');
+const autoprefixer = require('autoprefixer');
 
-// Ensure src directory exists
 const srcDir = path.join(__dirname, 'src');
 if (!fs.existsSync(srcDir)) {
   fs.mkdirSync(srcDir, { recursive: true });
 }
 
-// Bundle the main.js file with all dependencies
-esbuild.build({
-  entryPoints: ['src/main.js'],
-  bundle: true,
-  format: 'iife',
-  outfile: 'src/bundle.js',
-  platform: 'browser',
-  target: ['es2020'],
-  sourcemap: true,
-  external: [],
-  define: {
-    'global': 'window',
-    'process.env.NODE_ENV': '"production"'
-  },
-  loader: {
-    '.wasm': 'file'
+async function buildCSS() {
+  const cssPath = path.join(srcDir, 'styles.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+
+  const result = await postcss([tailwindcss, autoprefixer]).process(css, {
+    from: cssPath,
+    to: path.join(srcDir, 'bundle.css'),
+    map: { inline: false },
+  });
+
+  fs.writeFileSync(path.join(srcDir, 'bundle.css'), result.css);
+  if (result.map) {
+    fs.writeFileSync(path.join(srcDir, 'bundle.css.map'), result.map.toString());
   }
-}).then(() => {
-  console.log('Bundle created successfully!');
-  
-  // Update index.html to use bundle.js
-  const indexPath = path.join(__dirname, 'src', 'index.html');
-  let indexContent = fs.readFileSync(indexPath, 'utf8');
-  
-  // Replace the script tag to use regular script instead of module
-  indexContent = indexContent.replace(
-    '<script type="module" src="./main.js"></script>',
-    '<script src="./bundle.js"></script>'
-  );
-  
-  fs.writeFileSync(indexPath, indexContent);
-  console.log('index.html updated to use bundle.js');
-}).catch((error) => {
-  console.error('Build failed:', error);
-  process.exit(1);
-});
+  console.log('CSS bundle created');
+}
+
+async function buildJS() {
+  await esbuild.build({
+    entryPoints: ['src/main.js'],
+    bundle: true,
+    format: 'iife',
+    outfile: 'src/bundle.js',
+    platform: 'browser',
+    target: ['es2020'],
+    sourcemap: true,
+    minify: true,
+    define: {
+      global: 'window',
+      'process.env.NODE_ENV': '"production"',
+    },
+    loader: {
+      '.wasm': 'file',
+      '.css': 'css',
+      '.mp3': 'file',
+    },
+  });
+  console.log('JS bundle created');
+}
+
+async function buildAll() {
+  try {
+    await Promise.all([buildCSS(), buildJS()]);
+    console.log('Build complete');
+  } catch (error) {
+    console.error('Build failed:', error);
+    process.exit(1);
+  }
+}
+
+buildAll();
