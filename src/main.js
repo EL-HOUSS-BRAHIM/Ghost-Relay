@@ -1,4 +1,4 @@
-const Alpine = require('alpinejs');
+const AlpineModule = require('alpinejs');
 const anime = require('animejs');
 const sodium = require('libsodium-wrappers');
 const bip39 = require('bip39');
@@ -7,7 +7,9 @@ require('./styles.css');
 
 window.Buffer = Buffer;
 
-// Make Alpine available globally
+// Alpine.js may export differently depending on build system/version.
+// Check for .default property to ensure proper initialization (ES module interop).
+const Alpine = AlpineModule.default || AlpineModule;
 window.Alpine = Alpine;
 
 const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
