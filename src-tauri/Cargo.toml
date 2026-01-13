@@ -1,6 +1,6 @@
 [package]
 name = "ghost-relay"
-version = "0.1.4"
+version = "0.2.9"
 edition = "2021"
 
 [dependencies]
