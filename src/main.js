@@ -16,6 +16,48 @@ const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
 const wsUrl = 'wss://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app/ws';
 const APP_SECRET = 'ghost-relay-secure-2026-v1';
 
+function safeRandomUUID() {
+  try {
+    if (crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch (err) {
+    // ignored
+  }
+  if (typeof crypto === 'object' && typeof crypto.getRandomValues === 'function') {
+    const buf = new Uint8Array(16);
+    crypto.getRandomValues(buf);
+    buf[6] = buf[6] & 0x0f | 0x40;
+    buf[8] = buf[8] & 0x3f | 0x80;
+    const hex = [...buf].map(b => b.toString(16).padStart(2, '0'));
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
+  }
+  return `uuid-${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`;
+}
+
+async function copyToClipboard(text) {
+  try {
+    if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) {
+    // fall through
+  }
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (err) {
+    return false;
+  }
+}
+
 let keypairSign = null;
 let keypairEncrypt = null;
 let mediaRecorder = null;
@@ -123,6 +165,12 @@ async function syncUserList() {
 function makePayload(type, content) { return { t: type, c: content }; }
 
 function encryptForWire(obj) {
+  if (!sodium.crypto_box_easy || !sodium.randombytes_buf) {
+    throw new Error('Encryption unavailable: sodium not ready');
+  }
+  if (!keypairEncrypt || !keypairEncrypt.publicKey || !keypairEncrypt.privateKey) {
+    throw new Error('Keys missing: please log in again');
+  }
   const message = sodium.from_string(JSON.stringify(obj));
   const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
   const cipher = sodium.crypto_box_easy(message, nonce, keypairEncrypt.publicKey, keypairEncrypt.privateKey);
@@ -171,6 +219,7 @@ Alpine.data('app', () => ({
     ws: null,
     users: [],
     messages: [],
+    messageSeen: new Set(),
     typingUsers: new Set(),
     search: '',
     selectedRecipient: '',
@@ -296,7 +345,9 @@ Alpine.data('app', () => ({
     },
 
     copyMnemonic() {
-      navigator.clipboard.writeText(this.mnemonic);
+      copyToClipboard(this.mnemonic).then((ok) => {
+        if (!ok) alert('Copy failed. Please copy manually.');
+      });
     },
 
     async refreshUsers() {
@@ -315,7 +366,14 @@ Alpine.data('app', () => ({
 
     pushMessage(from, payload) {
       const msg = decryptFromWire(payload);
-      this.messages.push({ id: crypto.randomUUID(), from, t: msg.t, c: msg.c, time: timeLabel() });
+      const key = `${payload.nonce || ''}-${payload.cipher || ''}`;
+      if (this.messageSeen.has(key)) return;
+      this.messageSeen.add(key);
+      if (this.messageSeen.size > 400) {
+        const firstKey = this.messageSeen.values().next().value;
+        this.messageSeen.delete(firstKey);
+      }
+      this.messages.push({ id: safeRandomUUID(), from, t: msg.t, c: msg.c, time: timeLabel() });
       if (this.messages.length > 100) this.messages.shift();
       this.$nextTick(() => {
         const container = document.getElementById('messages');
@@ -356,14 +414,24 @@ Alpine.data('app', () => ({
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
       const content = type === 'txt' ? this.form.message.trim() : this.form.message;
       if (!content) return;
-      const payload = encryptForWire(makePayload(type, content));
-      const envelope = { to: this.selectedRecipient || '', from: this.currentUser, payload, type };
-      this.ws.send(JSON.stringify(envelope));
-      this.pushMessage(this.currentUser, payload);
-      this.form.message = '';
-      animateSendButton();
-      const stop = { type: 'typing_stop', to: this.selectedRecipient || '', from: this.currentUser };
-      this.ws.send(JSON.stringify(stop));
+      try {
+        await sodium.ready;
+        if (!keypairEncrypt || !keypairEncrypt.publicKey || !keypairEncrypt.privateKey) {
+          throw new Error('Missing keys: please log in again');
+        }
+        const payload = encryptForWire(makePayload(type, content));
+        const envelope = { to: this.selectedRecipient || '', from: this.currentUser, payload, type };
+        this.ws.send(JSON.stringify(envelope));
+        // Avoid double-render; rely on incoming WS echo to display, but show immediately if echo is slow.
+        this.pushMessage(this.currentUser, payload);
+        this.form.message = '';
+        animateSendButton();
+        const stop = { type: 'typing_stop', to: this.selectedRecipient || '', from: this.currentUser };
+        this.ws.send(JSON.stringify(stop));
+      } catch (err) {
+        console.error('Send failed', err);
+        alert('Unable to send message: ' + (err && err.message ? err.message : 'unknown error'));
+      }
     },
 
     async startRecording() {
