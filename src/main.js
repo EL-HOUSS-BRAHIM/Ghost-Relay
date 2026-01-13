@@ -7,8 +7,8 @@ require('./styles.css');
 
 window.Buffer = Buffer;
 
-// Make Alpine available globally
-window.Alpine = Alpine;
+// Make Alpine available globally - handle both CommonJS and ES module exports
+window.Alpine = Alpine.default || Alpine;
 
 const serverUrl = 'https://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app';
 const wsUrl = 'wss://ghost-relay-server--EL-HOUSS-BRAHIM.replit.app/ws';
@@ -161,7 +161,8 @@ function blobToBase64(blob) {
 }
 
 // Register Alpine component
-Alpine.data('app', () => ({
+const AlpineInstance = Alpine.default || Alpine;
+AlpineInstance.data('app', () => ({
   screen: 'login',
     statusLabel: 'OFFLINE',
     wsStatus: 'OFFLINE',
@@ -397,4 +398,4 @@ Alpine.data('app', () => ({
   }));
 
 // Start Alpine
-Alpine.start();
+AlpineInstance.start();
