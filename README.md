@@ -52,3 +52,5 @@ npm run build
 - Voice message support
 - Dark terminal-style UI (hacker theme)
 - 100% offline-capable (no external CDN requests)
+- Compact and optimized UI (360x550 window size)
+- Production-ready builds with minification and tree shaking

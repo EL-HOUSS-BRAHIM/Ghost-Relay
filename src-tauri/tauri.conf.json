@@ -15,8 +15,10 @@
     "windows": [
       {
         "title": "Ghost Relay",
-        "width": 400,
-        "height": 600,
+        "width": 360,
+        "height": 550,
+        "minWidth": 320,
+        "minHeight": 480,
         "resizable": true,
         "url": "index.html"
       }

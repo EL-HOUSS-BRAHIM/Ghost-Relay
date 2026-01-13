@@ -7,103 +7,76 @@
   <link rel="stylesheet" href="./bundle.css">
 </head>
 <body class="min-h-screen bg-deep text-gray-100">
-  <div x-data="app" x-init="init()" class="max-w-6xl mx-auto p-6 space-y-6">
-    <header class="flex items-center justify-between">
-      <div>
-        <p class="text-sm uppercase tracking-[0.3em] text-gray-400">Encrypted Relay</p>
-        <h1 class="text-3xl font-semibold text-white">Ghost Relay</h1>
-      </div>
-      <div class="flex items-center gap-3" x-show="statusLabel">
+  <div x-data="app" x-init="init()" class="max-w-6xl mx-auto p-4 space-y-4">
+    <header class="flex items-center justify-between py-2">
+      <h1 class="text-2xl font-semibold text-white">Ghost Relay</h1>
+      <div class="flex items-center gap-2" x-show="statusLabel">
         <span class="text-xs text-gray-400">Link</span>
-        <span :class="statusLabel === 'ONLINE' ? 'text-emerald-300' : 'text-rose-300'" class="text-sm font-semibold" x-text="statusLabel"></span>
+        <span :class="statusLabel === 'ONLINE' ? 'text-emerald-300' : 'text-rose-300'" class="text-xs font-semibold" x-text="statusLabel"></span>
       </div>
     </header>
 
     <!-- Auth Screens -->
-    <section x-show="screen === 'login'" x-cloak class="grid md:grid-cols-2 gap-6">
-      <div class="glass-card rounded-2xl p-6 space-y-4">
-        <div>
-          <p class="text-sm text-gray-400">Enter your credentials</p>
-          <h2 class="text-xl font-semibold text-white">Login</h2>
-        </div>
-        <div class="space-y-3">
+    <section x-show="screen === 'login'" x-cloak>
+      <div class="glass-card rounded-2xl p-4 space-y-3">
+        <h2 class="text-lg font-semibold text-white">Login</h2>
+        <div class="space-y-2">
           <div class="space-y-1">
             <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
-            <input x-model="form.username" type="text" placeholder="ghost" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+            <input x-model="form.username" type="text" placeholder="ghost" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
           </div>
           <div class="space-y-1">
             <label class="text-xs uppercase tracking-widest text-gray-400">Password</label>
-            <input x-model="form.password" type="password" placeholder="••••••" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+            <input x-model="form.password" type="password" placeholder="••••••" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
           </div>
-          <button @click="handleLogin" class="btn-metal w-full rounded-xl px-4 py-3 font-semibold">Enter</button>
-          <button @click="handleRegister" class="w-full rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">Create New Account</button>
-          <button @click="screen = 'recovery'" class="w-full text-sm text-gray-300 hover:text-white">Lost Keys? Recover Account</button>
+          <button @click="handleLogin" class="btn-metal w-full rounded-xl px-3 py-2 text-sm font-semibold">Enter</button>
+          <button @click="handleRegister" class="w-full rounded-xl px-3 py-2 text-sm font-semibold border border-white/10 text-white hover:border-white/30 transition">Create New Account</button>
+          <button @click="screen = 'recovery'" class="w-full text-xs text-gray-300 hover:text-white py-1">Lost Keys? Recover Account</button>
         </div>
-      </div>
-      <div class="glass-card rounded-2xl p-6 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="loader-blob"></div>
-          <div>
-            <p class="text-sm text-gray-400">Offline ready bundle</p>
-            <h3 class="text-lg font-semibold text-white">Bundled Tailwind · Alpine · Anime</h3>
-          </div>
-        </div>
-        <ul class="space-y-2 text-sm text-gray-300 list-disc list-inside">
-          <li>Deep Space Black background (#0a0a0f)</li>
-          <li>Liquid metal buttons and sent bubbles</li>
-          <li>Glassmorphic received bubbles</li>
-          <li>Sidebar typing blob indicators</li>
-        </ul>
       </div>
     </section>
 
-    <section x-show="screen === 'recovery'" x-cloak class="glass-card rounded-2xl p-6 space-y-4">
-      <div>
-        <p class="text-sm text-gray-400">Restore your identity</p>
-        <h2 class="text-xl font-semibold text-white">Recovery</h2>
-      </div>
-      <div class="grid md:grid-cols-3 gap-4">
-        <div class="md:col-span-1 space-y-2">
+    <section x-show="screen === 'recovery'" x-cloak class="glass-card rounded-2xl p-4 space-y-3">
+      <h2 class="text-lg font-semibold text-white">Recovery</h2>
+      <div class="space-y-3">
+        <div class="space-y-1">
           <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
-          <input x-model="form.recoverUsername" type="text" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+          <input x-model="form.recoverUsername" type="text" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
         </div>
-        <div class="md:col-span-1 space-y-2">
+        <div class="space-y-1">
           <label class="text-xs uppercase tracking-widest text-gray-400">New Password</label>
-          <input x-model="form.recoverPassword" type="password" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
+          <input x-model="form.recoverPassword" type="password" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30" />
         </div>
-        <div class="md:col-span-1 space-y-2">
+        <div class="space-y-1">
           <label class="text-xs uppercase tracking-widest text-gray-400">12-Word Phrase</label>
-          <textarea x-model="form.recoverPhrase" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[70px]"></textarea>
+          <textarea x-model="form.recoverPhrase" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[60px]"></textarea>
         </div>
       </div>
-      <div class="flex flex-wrap gap-3">
-        <button @click="handleRecovery" class="btn-metal rounded-xl px-4 py-3 font-semibold">Restore</button>
-        <button @click="screen = 'login'" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">Back to Login</button>
+      <div class="flex flex-wrap gap-2">
+        <button @click="handleRecovery" class="btn-metal rounded-xl px-3 py-2 text-sm font-semibold">Restore</button>
+        <button @click="screen = 'login'" class="rounded-xl px-3 py-2 text-sm font-semibold border border-white/10 text-white hover:border-white/30 transition">Back to Login</button>
       </div>
     </section>
 
     <!-- Chat Screen -->
-    <section x-show="screen === 'chat'" x-cloak class="grid lg:grid-cols-[280px_1fr] gap-4">
+    <section x-show="screen === 'chat'" x-cloak class="grid lg:grid-cols-[240px_1fr] gap-3">
       <!-- Sidebar -->
-      <div class="glass-card rounded-2xl p-4 space-y-4">
+      <div class="glass-card rounded-2xl p-3 space-y-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-gradient-to-br from-white to-gray-400"></div>
-            <div>
-              <p class="text-xs text-gray-400">Logged in as</p>
-              <p class="text-sm font-semibold" x-text="currentUser || 'Anonymous'"></p>
-            </div>
+          <div class="flex items-center gap-2">
+            <div class="h-8 w-8 rounded-full bg-gradient-to-br from-white to-gray-400"></div>
+            <p class="text-xs font-semibold" x-text="currentUser || 'Anonymous'"></p>
           </div>
-          <button @click="handleLogout" class="text-xs text-gray-400 hover:text-white">Logout</button>
+          <button @click="handleLogout" class="text-[10px] text-gray-400 hover:text-white">Logout</button>
         </div>
-        <input x-model="search" type="text" placeholder="Search users" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-sm" />
-        <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+        <input x-model="search" type="text" placeholder="Search users" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-2 py-1.5 text-xs" />
+        <div class="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
           <template x-for="user in filteredUsers" :key="user.username">
-            <button @click="selectRecipient(user.username)" class="w-full flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-white/5 border border-white/5 transition" :class="selectedRecipient === user.username ? 'border-white/30 bg-white/5' : ''">
-              <div class="h-10 w-10 rounded-full" :style="avatarStyle(user.username)"></div>
-              <div class="flex-1 text-left">
-                <p class="font-semibold" x-text="user.username"></p>
-                <div class="flex items-center gap-2 text-xs text-gray-400">
+            <button @click="selectRecipient(user.username)" class="w-full flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-white/5 border border-white/5 transition" :class="selectedRecipient === user.username ? 'border-white/30 bg-white/5' : ''">
+              <div class="h-8 w-8 rounded-full flex-shrink-0" :style="avatarStyle(user.username)"></div>
+              <div class="flex-1 text-left min-w-0">
+                <p class="text-xs font-semibold truncate" x-text="user.username"></p>
+                <div class="flex items-center gap-1 text-[10px] text-gray-400">
                   <span x-show="typingUsers.has(user.username)" class="liquid-blob"></span>
                   <span x-show="!typingUsers.has(user.username)">Idle</span>
                 </div>
@@ -114,23 +87,20 @@
       </div>
 
       <!-- Chat area -->
-      <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[70vh]">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
-          <div>
-            <p class="text-xs text-gray-400">Chatting with</p>
-            <h3 class="text-lg font-semibold" x-text="selectedRecipient || 'Everyone'"></h3>
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-400">
+      <div class="glass-card rounded-2xl p-3 flex flex-col min-h-[65vh]">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+          <h3 class="text-sm font-semibold" x-text="selectedRecipient || 'Everyone'"></h3>
+          <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
             <span class="typing-dot" x-show="Array.from(typingUsers).length > 0"></span>
             <span x-text="wsStatus"></span>
           </div>
         </div>
 
-        <div id="messages" class="flex-1 overflow-y-auto py-4 space-y-3 pr-2">
+        <div id="messages" class="flex-1 overflow-y-auto py-3 space-y-2 pr-1">
           <template x-for="msg in messages" :key="msg.id">
             <div class="flex" :class="msg.from === currentUser ? 'justify-end' : 'justify-start'">
-              <div class="max-w-[78%] rounded-2xl px-4 py-3 shadow-lg" :class="msg.from === currentUser ? 'bubble-metal text-sm' : 'bubble-glass text-sm text-white'">
-                <div class="flex items-center gap-2 text-xs text-gray-300 mb-1">
+              <div class="max-w-[80%] rounded-xl px-3 py-2 shadow-lg" :class="msg.from === currentUser ? 'bubble-metal text-xs' : 'bubble-glass text-xs text-white'">
+                <div class="flex items-center gap-1.5 text-[10px] text-gray-300 mb-0.5">
                   <span class="font-semibold" x-text="msg.from"></span>
                   <span class="opacity-60" x-text="msg.time"></span>
                 </div>
@@ -145,29 +115,29 @@
           </template>
         </div>
 
-        <div class="pt-3 space-y-2">
-          <textarea x-model="form.message" @input="emitTyping()" placeholder="Type a message" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[90px]"></textarea>
-          <div class="flex items-center gap-3">
-            <button @click="sendMessage('txt')" class="btn-metal rounded-xl px-6 py-3 font-semibold">Send</button>
-            <button @mousedown.prevent="startRecording()" @mouseup.prevent="stopRecording()" @mouseleave.prevent="stopRecording()" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">🎤 Hold Rec</button>
+        <div class="pt-2 space-y-2">
+          <textarea x-model="form.message" @input="emitTyping()" placeholder="Type a message" class="w-full rounded-xl bg-deep-light/70 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[70px]"></textarea>
+          <div class="flex items-center gap-2">
+            <button @click="sendMessage('txt')" class="btn-metal rounded-xl px-4 py-2 text-xs font-semibold">Send</button>
+            <button @mousedown.prevent="startRecording()" @mouseup.prevent="stopRecording()" @mouseleave.prevent="stopRecording()" class="rounded-xl px-3 py-2 text-xs font-semibold border border-white/10 text-white hover:border-white/30 transition">🎤 Hold</button>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Mnemonic Modal -->
-    <div x-show="modals.mnemonic" x-cloak class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-      <div class="glass-card rounded-2xl p-6 max-w-xl w-full space-y-4">
+    <div x-show="modals.mnemonic" x-cloak class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="glass-card rounded-2xl p-4 max-w-md w-full space-y-3">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-white">Secret Recovery Phrase</h3>
+          <h3 class="text-base font-semibold text-white">Secret Recovery Phrase</h3>
           <button @click="modals.mnemonic = false" class="text-gray-300 hover:text-white">✕</button>
         </div>
-        <p class="text-sm text-gray-300">Save this 12-word phrase. It's the ONLY way to recover your account.</p>
-        <div class="rounded-xl border border-white/10 bg-deep-light/60 p-4 text-center text-emerald-200" x-text="mnemonic"></div>
-        <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">Write this down and store it safely offline. Never share it.</div>
-        <div class="flex gap-3">
-          <button @click="copyMnemonic" class="btn-metal rounded-xl px-4 py-3 font-semibold">Copy</button>
-          <button @click="closeMnemonic" class="rounded-xl px-4 py-3 font-semibold border border-white/10 text-white hover:border-white/30 transition">I've Saved It</button>
+        <p class="text-xs text-gray-300">Save this 12-word phrase. It's the ONLY way to recover your account.</p>
+        <div class="rounded-xl border border-white/10 bg-deep-light/60 p-3 text-center text-sm text-emerald-200" x-text="mnemonic"></div>
+        <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-2 text-xs text-amber-200">Write this down and store it safely offline. Never share it.</div>
+        <div class="flex gap-2">
+          <button @click="copyMnemonic" class="btn-metal rounded-xl px-3 py-2 text-xs font-semibold">Copy</button>
+          <button @click="closeMnemonic" class="rounded-xl px-3 py-2 text-xs font-semibold border border-white/10 text-white hover:border-white/30 transition">I've Saved It</button>
         </div>
       </div>
     </div>

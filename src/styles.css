@@ -85,11 +85,11 @@ body {
 }
 
 .loader-blob {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   background: radial-gradient(circle at 30% 30%, #ffffff 0%, #c0c0c0 25%, #8f8f95 60%, #0a0a0f 90%);
-  filter: drop-shadow(0 10px 25px rgba(255,255,255,0.15));
+  filter: drop-shadow(0 8px 20px rgba(255,255,255,0.12));
   animation: blob 3s ease-in-out infinite;
 }
 

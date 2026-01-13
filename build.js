@@ -17,13 +17,10 @@ async function buildCSS() {
   const result = await postcss([tailwindcss, autoprefixer]).process(css, {
     from: cssPath,
     to: path.join(srcDir, 'bundle.css'),
-    map: { inline: false },
+    map: false,
   });
 
   fs.writeFileSync(path.join(srcDir, 'bundle.css'), result.css);
-  if (result.map) {
-    fs.writeFileSync(path.join(srcDir, 'bundle.css.map'), result.map.toString());
-  }
   console.log('CSS bundle created');
 }
 
@@ -35,8 +32,9 @@ async function buildJS() {
     outfile: 'src/bundle.js',
     platform: 'browser',
     target: ['es2020'],
-    sourcemap: true,
+    sourcemap: false,
     minify: true,
+    treeShaking: true,
     define: {
       global: 'window',
       'process.env.NODE_ENV': '"production"',
