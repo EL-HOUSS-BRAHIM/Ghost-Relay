@@ -35,8 +35,9 @@ async function buildJS() {
     outfile: 'src/bundle.js',
     platform: 'browser',
     target: ['es2020'],
-    sourcemap: true,
+    sourcemap: false,
     minify: true,
+    treeShaking: true,
     define: {
       global: 'window',
       'process.env.NODE_ENV': '"production"',
