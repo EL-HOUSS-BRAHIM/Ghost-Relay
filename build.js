@@ -17,13 +17,10 @@ async function buildCSS() {
   const result = await postcss([tailwindcss, autoprefixer]).process(css, {
     from: cssPath,
     to: path.join(srcDir, 'bundle.css'),
-    map: { inline: false },
+    map: false,
   });
 
   fs.writeFileSync(path.join(srcDir, 'bundle.css'), result.css);
-  if (result.map) {
-    fs.writeFileSync(path.join(srcDir, 'bundle.css.map'), result.map.toString());
-  }
   console.log('CSS bundle created');
 }
 
