@@ -7,7 +7,8 @@ require('./styles.css');
 
 window.Buffer = Buffer;
 
-// Handle both CommonJS and ES module exports for Alpine.js
+// Alpine.js may export differently depending on build system/version.
+// Check for .default property to ensure proper initialization (ES module interop).
 const Alpine = AlpineModule.default || AlpineModule;
 window.Alpine = Alpine;
 
