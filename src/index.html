@@ -9,10 +9,7 @@
 <body class="min-h-screen bg-deep text-gray-100">
   <div x-data="app" x-init="init()" class="max-w-6xl mx-auto p-4 space-y-4">
     <header class="flex items-center justify-between py-2">
-      <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Encrypted Relay</p>
-        <h1 class="text-2xl font-semibold text-white">Ghost Relay</h1>
-      </div>
+      <h1 class="text-2xl font-semibold text-white">Ghost Relay</h1>
       <div class="flex items-center gap-2" x-show="statusLabel">
         <span class="text-xs text-gray-400">Link</span>
         <span :class="statusLabel === 'ONLINE' ? 'text-emerald-300' : 'text-rose-300'" class="text-xs font-semibold" x-text="statusLabel"></span>
@@ -20,12 +17,9 @@
     </header>
 
     <!-- Auth Screens -->
-    <section x-show="screen === 'login'" x-cloak class="space-y-4">
+    <section x-show="screen === 'login'" x-cloak>
       <div class="glass-card rounded-2xl p-4 space-y-3">
-        <div>
-          <p class="text-xs text-gray-400">Enter your credentials</p>
-          <h2 class="text-lg font-semibold text-white">Login</h2>
-        </div>
+        <h2 class="text-lg font-semibold text-white">Login</h2>
         <div class="space-y-2">
           <div class="space-y-1">
             <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
@@ -40,28 +34,10 @@
           <button @click="screen = 'recovery'" class="w-full text-xs text-gray-300 hover:text-white py-1">Lost Keys? Recover Account</button>
         </div>
       </div>
-      <div class="glass-card rounded-2xl p-4 space-y-3">
-        <div class="flex items-center gap-2">
-          <div class="loader-blob"></div>
-          <div>
-            <p class="text-xs text-gray-400">Offline ready bundle</p>
-            <h3 class="text-sm font-semibold text-white">Tailwind · Alpine · Anime</h3>
-          </div>
-        </div>
-        <ul class="space-y-1 text-xs text-gray-300 list-disc list-inside">
-          <li>Deep Space Black (#0a0a0f)</li>
-          <li>Liquid metal buttons</li>
-          <li>Glassmorphic design</li>
-          <li>Typing indicators</li>
-        </ul>
-      </div>
     </section>
 
     <section x-show="screen === 'recovery'" x-cloak class="glass-card rounded-2xl p-4 space-y-3">
-      <div>
-        <p class="text-xs text-gray-400">Restore your identity</p>
-        <h2 class="text-lg font-semibold text-white">Recovery</h2>
-      </div>
+      <h2 class="text-lg font-semibold text-white">Recovery</h2>
       <div class="space-y-3">
         <div class="space-y-1">
           <label class="text-xs uppercase tracking-widest text-gray-400">Username</label>
@@ -89,10 +65,7 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="h-8 w-8 rounded-full bg-gradient-to-br from-white to-gray-400"></div>
-            <div>
-              <p class="text-[10px] text-gray-400">Logged in as</p>
-              <p class="text-xs font-semibold" x-text="currentUser || 'Anonymous'"></p>
-            </div>
+            <p class="text-xs font-semibold" x-text="currentUser || 'Anonymous'"></p>
           </div>
           <button @click="handleLogout" class="text-[10px] text-gray-400 hover:text-white">Logout</button>
         </div>
@@ -116,10 +89,7 @@
       <!-- Chat area -->
       <div class="glass-card rounded-2xl p-3 flex flex-col min-h-[65vh]">
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
-          <div>
-            <p class="text-[10px] text-gray-400">Chatting with</p>
-            <h3 class="text-sm font-semibold" x-text="selectedRecipient || 'Everyone'"></h3>
-          </div>
+          <h3 class="text-sm font-semibold" x-text="selectedRecipient || 'Everyone'"></h3>
           <div class="flex items-center gap-1.5 text-[10px] text-gray-400">
             <span class="typing-dot" x-show="Array.from(typingUsers).length > 0"></span>
             <span x-text="wsStatus"></span>
